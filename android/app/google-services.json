@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389123453841",
+    "project_id": "manntravlerapp",
+    "storage_bucket": "manntravlerapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389123453841:android:a8cef9fffa1df24da5e030",
+        "android_client_info": {
+          "package_name": "com.nexus.mannfleet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABunPSHdngJs4GKeXN3winEYDSiQsBwvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
