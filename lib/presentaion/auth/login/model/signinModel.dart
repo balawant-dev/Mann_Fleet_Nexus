@@ -1,8 +1,8 @@
 class SignInModel {
-  bool? status;
-  String? message;
+ var status;
+  var message;
   Data? data;
-  bool? newUser;
+ var newUser;
 
   SignInModel({this.status, this.message, this.data, this.newUser});
 
@@ -26,11 +26,11 @@ class SignInModel {
 }
 
 class Data {
-  String? mobile;
-  String? email;
-  String? otpExpiry;
+  var mobile;
+  var email;
+  var otpExpiry;
   User? user;
-  String? type;
+  var type;
 
   Data({this.mobile, this.email, this.otpExpiry, this.user, this.type});
 
@@ -56,17 +56,17 @@ class Data {
 }
 
 class User {
-  String? sId;
-  String? id;
-  String? mobile;
-  int? walletBalance;
-  bool? isVerified;
-  String? deviceId;
-  String? deviceType;
-  String? createdAt;
-  String? updatedAt;
-  int? iV;
-  String? otpExpiry;
+  var sId;
+  var id;
+  var mobile;
+ var walletBalance;
+ var isVerified;
+  var deviceId;
+  var deviceType;
+  var createdAt;
+  var updatedAt;
+ var iV;
+  var otpExpiry;
 
   User(
       {this.sId,

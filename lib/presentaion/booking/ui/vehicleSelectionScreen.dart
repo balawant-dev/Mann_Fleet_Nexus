@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../../../util/color/app_colors.dart';
 import '../../../widget/customShimmer.dart';
 import '../../../widget/custom_appBar.dart';
+import '../../../widget/motionToastHelper.dart';
 import '../../bottomBar/bottomBar.dart';
 import '../../home/provider/homeProvider.dart';
 import 'bookingSummery.dart';
@@ -43,12 +44,12 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
   int selectedIndex = 0;
   int? selectedCardIndex;
 
-  final List<String> tabs = [
-    "All",
-    "Airport Cab",
-    "Airport Shuttle",
-    "Mann taj Express"
-  ];
+  // final List<String> tabs = [
+  //   "All",
+  //   "Airport Cab",
+  //   "Airport Shuttle",
+  //   "Mann taj Express"
+  // ];
 
 
 
@@ -91,68 +92,11 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                     children: [
                       bannerSection(provider: homeProvider,screenHeight:screenHeight ,screenWidth:screenWidth ),
 
-                      /// TOP IMAGE
-                      // CustomImageView(
-                      //   borderRadius: 12,
-                      //   imagePath: AppImages.carImage,
-                      //   width: MediaQuery
-                      //       .of(context)
-                      //       .size
-                      //       .width,
-                      //   height: 200,
-                      //   fit: BoxFit.cover,
-                      // ),
+
 
                       const SizedBox(height: 15),
 
-                      /// TABS
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: List.generate(
-                            tabs.length,
-                                (index) =>
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 15),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedIndex = index;
-                                      });
-                                    },
-                                    child: Column(
-                                      children: [
 
-                                        CustomText(
-                                          tabs[index],
-                                          size: 14,
-                                          weight: FontWeight.w600,
-                                          color: selectedIndex == index
-                                              ? ColorResource.textColor
-                                              : Color(0xFF64748B),
-                                        ),
-
-                                        const SizedBox(height: 6),
-
-                                        Container(
-                                          height: 3,
-                                          width: 70,
-                                          decoration: BoxDecoration(
-                                            color: selectedIndex == index
-                                                ? ColorResource.textColor
-                                                : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
 
                       CustomText(
                         'Available Taxis',
@@ -181,6 +125,23 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                                             bottom: 10.0),
                                         child: GestureDetector(
                                           onTap:(){
+
+                                            final segment = homeProvider.oneWayBookingModel!.data!.segments![index];
+
+                                            if (segment.fareBreakdown!.distanceCharge == null) {
+                                              ToastHelper.show(context, message:  "Pickup and drop-off location cannot be the same.",type: ToastType.warning);
+
+                                              return; // ❗ stop further execution
+                                            }
+
+                                            if (segment.estimatedFare == null) {
+                                              ToastHelper.show(context, message:  "${segment.message}",type: ToastType.warning);
+
+                                              return; // ❗ stop further execution
+                                            }
+
+                                            //////////////////////////////////////////iske upar ka code remove kar do ager warning hatan ahai to
+
                                             setState(() {
                                               selectedCardIndex = index;
                                             });
@@ -193,27 +154,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
 
                                             String formattedDate = DateFormat("dd-MM-yyyy").format(parsedDate);
                                             String formattedTime = DateFormat("hh:mm a").format(parsedDate);
-                          // navPush(context: context,
-                          // action: BookingSummary(
-                          //   vehicleImage: homeProvider.oneWayBookingModel!.data!.segments![index].segmentImage.toString(),
-                          // away:"6 seats • 8 mins away",
-                          // baseFare:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.baseFare.toString(),
-                          // cancellationFee:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.cancellationFee.toString(),
-                          // date:formattedDate,
-                          // distanceCharge:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.distanceCharge.toString(),
-                          // dropLocation:homeProvider.oneWayBookingModel!.data!.dropoff.toString(),
-                          // gstAmount:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.gstAmount.toString(),
-                          // gstPercent:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.gstPercent.toString(),
-                          // minFareApplied:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.minFareApplied.toString(),
-                          // pickUpLocation:homeProvider.oneWayBookingModel!.data!.pickup.toString(),
-                          // segmentName:homeProvider.oneWayBookingModel!.data!.segments![index].segmentName.toString(),
-                          // subtotal:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.subtotal.toString(),
-                          // surgeCharge:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.surgeCharge.toString(),
-                          // time:formattedTime,
-                          // timeCharge:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.timeCharge.toString(),
-                          // tollCharge:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.tollCharge.toString(),
-                          // totalFare:homeProvider.oneWayBookingModel!.data!.segments![index].fareBreakdown!.totalFare.toString(),
-                          // vehicleName:"BMW X1 Series",));
+
                           },
                                           child: Container(
                                             decoration: BoxDecoration(
@@ -226,17 +167,19 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                                               borderRadius: BorderRadius.circular(12),
                                             ),
                                             child: BookingCard(
+                                              bookingType:  homeProvider.oneWayBookingModel!.data!
+                                                  .bookingType,
                                               image: homeProvider.oneWayBookingModel!.data!.segments![index].segmentImage,
                                               title: homeProvider.oneWayBookingModel!.data!.segments![index].segmentName,
                                               subTitle: homeProvider.oneWayBookingModel!.data!.distanceText.toString(),
-                                              price: homeProvider.oneWayBookingModel!.data!.segments![index].estimatedFare.toString(),
-                                              //      "away": "6 seats • 8 mins away",
-                                              //       "time": "ETA: 50 mins to destination"
+                                              finalPayableAmount: homeProvider.oneWayBookingModel!.data!.segments![index].finalPayableAmount.toString(),
+                                              totalAmount: homeProvider.oneWayBookingModel!.data!.segments![index].estimatedFare.toString(),
+                                              walletDiscount:  homeProvider.oneWayBookingModel!.data!.segments![index].walletDiscount.toString(),
+
                                               away: "6 seats • 8 mins away",
                                               time: "ETA: ${homeProvider.oneWayBookingModel!.data!.durationText} • ${homeProvider.oneWayBookingModel!.data!.distanceText} to destination ",
 
-                                             // time: "ETA: ${homeProvider.oneWayBookingModel!.data!.durationText.toString()} to destination", //homeProvider.oneWayBookingModel!.data!.distanceText.toString(),
-                                            ),
+                                          ),
                                           ),
                                         ),
                                       ),
@@ -288,36 +231,13 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                         },
                       ),
 
+
+                      const SizedBox(height: 20),
+                      homeProvider.oneWayBookingModel?.data?.walletBonusRestriction?.message==null ?SizedBox():    Text("Note: ${homeProvider.oneWayBookingModel!.data!.walletBonusRestriction!.message}",style: TextStyle(color: Colors.red,fontSize: 12,    fontStyle: FontStyle.italic, ),),
                       const SizedBox(height: 20),
 
                       /// PAYMENT ROW
-                      // Row(
-                      //   children: [
-                      //
-                      //     CustomImageView(
-                      //       imagePath: AppImages.paymentIcon,
-                      //       height: 13,
-                      //       width: 20,
-                      //       fit: BoxFit.cover,
-                      //     ),
-                      //
-                      //     const SizedBox(width: 4),
-                      //
-                      //     CustomText(
-                      //       'Personal • Card ending 4242',
-                      //       size: 14,
-                      //       weight: FontWeight.w500,
-                      //       color: ColorResource.black,
-                      //     ),
-                      //
-                      //     const Spacer(),
-                      //
-                      //     Icon(Icons.arrow_forward_ios,
-                      //         size: 20,
-                      //         color: ColorResource.Continue)
-                      //
-                      //   ],
-                      // ),
+
 
                       const SizedBox(height: 25),
 
@@ -335,7 +255,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                   ),
                 ),
               ),
-          bottomSheet:   SafeArea(
+          bottomNavigationBar:   SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(14.0),
               child: CustomButton(
@@ -346,6 +266,153 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                 onTap: selectedCardIndex == null
                     ? null
                     : () {
+                  final suggestion = homeProvider.oneWayBookingModel!
+                      .data!.intercitySuggestion;
+
+                  /// ✅ CASE 1: If suggestion exists → STOP navigation + show message
+                  if (suggestion != null) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) {
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+
+                                /// TOP ICON
+                                Container(
+                                  height: 60,
+                                  width: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.info_outline,
+                                      color: Colors.orange, size: 30),
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                /// TITLE
+                                Text(
+                                  "Booking Suggestion",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                /// MESSAGE
+                                Text(
+                                  suggestion.message ?? "Something went wrong",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 15),
+
+                                /// SUGGESTED TYPE CARD
+                                Container(
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.local_taxi, color: Colors.green),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          suggestion.suggestedBookingType ?? "",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                /// REASON
+                                Text(
+                                  suggestion.reason ?? "",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                /// BUTTONS
+                                Row(
+                                  children: [
+
+                                    /// CANCEL
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        style: OutlinedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text("Cancel"),
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    /// ACCEPT BUTTON
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: ColorResource.buttonBackground,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          navPushReplace(context: context, action: MainScreen(currentIndex: 0,));
+                                          // Navigator.pop(context);
+
+                                          /// 👉 Yaha tum chahe to suggested booking type apply kar sakte ho
+                                        },
+                                        child: Text("OK"),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+
+
+
+                    return; // ❌ STOP navigation
+                  }
+
+
+                  /// ✅ CASE 2: If NULL → Continue normally
             
                   int index = selectedCardIndex!;
             
@@ -359,7 +426,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
             
                   String formattedTime =
                   DateFormat("hh:mm a").format(parsedDate);
-            
+                  final roundTrip = homeProvider.oneWayBookingModel?.data?.roundTripEffective;
                   navPush(
                     context: context,
                     action: BookingSummary(
@@ -371,11 +438,7 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                           .isGrayMatter,
                       isPickupAirport:  homeProvider.oneWayBookingModel!.data!
                           .isPickupAirport,
-                      estimatedTimeContent:      "ETA: ${homeProvider.oneWayBookingModel!.data!.durationText} • ${homeProvider.oneWayBookingModel!.data!.distanceText} to destination ",
-
-
-
-                      //  estimatedTimeContent:  "ETA: ${homeProvider.oneWayBookingModel!.data!.durationText.toString()} to destination",
+                      estimatedTimeContent:   "ETA: ${homeProvider.oneWayBookingModel!.data!.durationText} • ${homeProvider.oneWayBookingModel!.data!.distanceText} to destination ",
                       estimatedDistance: homeProvider.oneWayBookingModel!.data!
                           .distanceText,
                       estimatedTime: homeProvider.oneWayBookingModel!.data!
@@ -387,6 +450,9 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                           .toString(),
                       surchargeAmount: homeProvider.oneWayBookingModel!.data!
                           .segments!.first.fareBreakdown!.surchargeAmount
+                          .toString(),
+                      mcdTollCharge:homeProvider.oneWayBookingModel!.data!
+                          .segments!.first.fareBreakdown!.mcdTollCharge
                           .toString(),
                       bookingType: homeProvider.oneWayBookingModel!.data!
                           .bookingType,
@@ -414,6 +480,8 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                       //     .polyline
                       //     .toString(),
                       paymentMethod:"upi" ,
+                      finalPayableAmount: homeProvider.oneWayBookingModel!.data!.segments![index].finalPayableAmount.toString(),
+                      walletDiscount: homeProvider.oneWayBookingModel!.data!.segments![index].walletDiscount.toString(),
                       estimatedFare:homeProvider.oneWayBookingModel!.data!
                           .segments![index].estimatedFare
                           .toString(),
@@ -483,6 +551,11 @@ class _VehicleSelectionScreenState extends State<VehicleSelectionScreen> {
                       selectedHours: widget.selectedHours,
                       toCity: widget.toCity,
                       tripDays: widget.tripDays,
+                      //New Added section ok
+                      effectiveDistanceKm: roundTrip?.effectiveDistanceKm.toString(),
+                      effectiveTotalMins: roundTrip?.effectiveTotalMins.toString(),
+                      idleMinsBetweenLegs: roundTrip?.idleMinsBetweenLegs.toString(),
+                      returnTravelMins: roundTrip?.returnTravelMins.toString(),
                     ),
                   );
                 },

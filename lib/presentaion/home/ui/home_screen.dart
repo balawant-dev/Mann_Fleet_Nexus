@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:mannfleet/util/color/app_colors.dart';
@@ -27,51 +26,127 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  // final ScrollController _scrollController = ScrollController();
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  final scrollController = ScrollController();
+  final GlobalKey tabsKey = GlobalKey();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    loadInitialData();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadInitialData();
+    });
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    scrollController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    if (bottomInset > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        if (!mounted || !scrollController.hasClients) return;
+
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent + 250,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+
   void loadInitialData() {
     final vm = Provider.of<HomeProvider>(context, listen: false);
     vm.getBannerApi(context: context);
+    vm.getHourlyPackageApi(context: context);
     vm.clearAllFields();
-    final vmProfile = Provider.of<ProfileDetailViewModel>(context, listen: false);
+    final vmProfile = Provider.of<ProfileDetailViewModel>(
+      context,
+      listen: false,
+    );
     vmProfile.getProfileApi(context: context);
   }
+
+  void scrollToTopTabs() {
+    if (tabsKey.currentContext != null) {
+      final context = tabsKey.currentContext!;
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          alignment:0
+          // alignment: 0.001,
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     AppSizes.init(context);
+    final bottomInsect = MediaQuery.of(context).viewInsets.bottom > 0;
 
-    return Consumer2<HomeProvider,ProfileDetailViewModel>(
-        builder: (context, provider,profilePro, child) {
-          // if(profilePro.getProfileModel==null ||profilePro.getProfileModel!.data==null){
-          //   return Center(child: CircularProgressIndicator());
-          // }
+    return Consumer2<HomeProvider, ProfileDetailViewModel>(
+      builder: (context, provider, profilePro, child) {
 
-          return Scaffold(
+
+        final user = profilePro.getProfileModel?.data?.user;
+
+        String genderTitle = "";
+
+        switch (user?.gender?.toLowerCase()) {
+          case "male":
+            genderTitle = "Mr.";
+            break;
+          case "female":
+            genderTitle = "Ms.";
+            break;
+          case "other":
+            genderTitle = "Mx.";
+            break;
+          default:
+            genderTitle = "";
+        }
+
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: ColorResource.white,
 
-              key: _scaffoldKey,
-              drawer: const CustomDrawer(),
+          key: _scaffoldKey,
+          drawer: const CustomDrawer(),
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(80),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 5,
+                ),
                 child: Row(
                   children: [
                     /// ☰ Menu
                     GestureDetector(
                       onTap: () {
                         _scaffoldKey.currentState!.openDrawer();
-                        // open drawer or menu
                       },
                       child: CustomImageView(
                         imagePath: AppImages.menuImage,
@@ -95,16 +170,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             weight: FontWeight.w500,
                             color: ColorResource.textBlack,
                           ),
-                          CustomText(
-                            profilePro.getProfileModel?.data?.user?.name != null &&
-                                profilePro.getProfileModel!.data!.user!.name!.isNotEmpty
-                                ? "Mr. ${profilePro.getProfileModel!.data!.user!.name}"
+                          Text(
+                            user?.name != null && user!.name!.isNotEmpty
+                                ? "$genderTitle ${user.name}"
                                 : "Guest",
-                            // '${profilePro.getProfileModel?.data?.user?.name ?? "Guest"}',
-                            size: 18,
-                            weight: FontWeight.w700,
-                            color: ColorResource.black,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: ColorResource.black,
+                            ),
+
                           ),
+
+
                         ],
                       ),
                     ),
@@ -126,247 +205,119 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          body:  SingleChildScrollView(
-            // controller: _scrollController, // 👈 yaha
-                child: Column(
-                  children: [
-                    // SizedBox(height: screenHeight * 0.045),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.manual,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
 
-                    // Top bar - Menu + Greeting + Notification
-                    // Padding(
-                    //   padding:
-                    //   const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                    //   child: Row(
-                    //     children: [
-                    //       GestureDetector(
-                    //       onTap: (){
-                    //         //navPush(context: context, action: SplashScreen());
-                    //       },
-                    //
-                    //         child: CustomImageView(
-                    //           imagePath: AppImages.menuImage,
-                    //           height: screenHeight * 0.05,
-                    //           width: screenWidth * 0.111,
-                    //           fit: BoxFit.cover,
-                    //         ),
-                    //       ),
-                    //       const SizedBox(width: 10),
-                    //       Column(
-                    //         crossAxisAlignment: CrossAxisAlignment.start,
-                    //         children: [
-                    //           CustomText(
-                    //             _getGreeting(),
-                    //             size: AppSizes.size12,
-                    //             weight: FontWeight.w500,
-                    //             color: ColorResource.textBlack,
-                    //           ),
-                    //           CustomText(
-                    //             '${profilePro.getProfileModel?.data?.user?.name??"Guest"}',
-                    //             size: 18,
-                    //             weight: FontWeight.w700,
-                    //             color: ColorResource.black,
-                    //           ),
-                    //         ],
-                    //       ),
-                    //       const Spacer(),
-                    //       GestureDetector(
-                    //         onTap: (){
-                    //           navPush(context: context, action: NotificationScreen());
-                    //         },
-                    //         child: CustomImageView(
-                    //           imagePath: AppImages.notification,
-                    //           height: screenHeight * 0.05,
-                    //           width: screenWidth * 0.111,
-                    //           fit: BoxFit.cover,
-                    //
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+                          Container(
+                            width: MediaQuery.of(context).size.width,
 
-                    // Main Tabs: AIRPORT/CITY  |  AIRPORT SHUTTLE  |  MANN TAJ EXPRESS
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 15),
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: ColorResource.homeOption,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: List.generate(
-                          provider.tabs.length,
-                              (index) {
-                            bool isSelected = provider.selectedIndex == index;
-                            return Expanded(
-                              child: GestureDetector(
-                                onTap: () => provider.changeTab(index),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 250),
-                                  padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? ColorResource.white
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: CustomText(
-                                      provider.tabs[index],
-                                      size: 10,
-                                      weight: FontWeight.w700,
-                                      color: isSelected
-                                          ? ColorResource.blueText
-                                          : ColorResource.textBlack,
+
+                            margin: const EdgeInsets.symmetric(horizontal: 15),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: ColorResource.homeOption,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+
+                                children: List.generate(provider.tabs.length, (
+                                  index,
+                                ) {
+                                  bool isSelected =
+                                      provider.selectedIndex == index;
+
+                                  return GestureDetector(
+                                    onTap: () => provider.changeTab(index),
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width*0.3,
+                                      // duration: const Duration(
+                                      //   milliseconds: 250,
+                                      // ),
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? ColorResource.white
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          provider.tabs[index],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: isSelected
+                                                ? ColorResource.blueText
+                                                : ColorResource.textBlack,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+
+                          // SizedBox(height: screenHeight * 0.0125),
+
+                          if (provider.selectedIndex == 0)
+                            AirportCityView(
+                              provider: provider,
+                              screenHeight: screenHeight,
+                              screenWidth: screenWidth,
+
+                              onLocationFocus: scrollToTopTabs,
+                              globalKey: tabsKey,
+
+                            ),
+
+                          if (provider.selectedIndex == 1)
+                            AirportShuttleView(
+                              provider: provider,
+                              screenHeight: screenHeight,
+                              screenWidth: screenWidth,
+                            ),
+
+                          if (provider.selectedIndex == 2)
+                            MannTajExpressView(
+                              provider: provider,
+                              screenHeight: screenHeight,
+                              screenWidth: screenWidth,
+                            ),
+
+
+                          if (bottomInsect) SizedBox(height: 120),
+                        ],
                       ),
                     ),
-
-                    SizedBox(height: screenHeight * 0.0125),
-
-
-
-                    if (provider.selectedIndex == 0)
-                      AirportCityView(
-                        provider: provider,
-                        screenHeight: screenHeight,
-                        screenWidth: screenWidth,
-                        // scrollController: _scrollController, // 👈 add this
-                      ),
-
-                    if (provider.selectedIndex == 1)
-                      AirportShuttleView(
-                        provider: provider,
-                        screenHeight: screenHeight,
-                        screenWidth: screenWidth,
-                      ),
-
-                    if (provider.selectedIndex == 2)
-                      MannTajExpressView(
-                        provider: provider,
-                        screenHeight: screenHeight,
-                        screenWidth: screenWidth,
-                      ),
-
-                    // ─────────────────────────────────────────────────────────────
-                    //           COMMON SECTION (Recent + Deals)
-                    // ─────────────────────────────────────────────────────────────
-                    // Container(
-                    //   padding: const EdgeInsets.all(15),
-                    //   child: Column(
-                    //     crossAxisAlignment: CrossAxisAlignment.start,
-                    //     children: [
-                    //       // Recent Bookings
-                    //       Row(
-                    //         children: [
-                    //           CustomImageView(
-                    //             imagePath: AppImages.recentImage,
-                    //             height: 16,
-                    //             width: 16,
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           const SizedBox(width: 10),
-                    //           CustomText(
-                    //             'Recent Bookings',
-                    //             size: 16,
-                    //             color: ColorResource.black,
-                    //             weight: FontWeight.w700,
-                    //           ),
-                    //         ],
-                    //       ),
-                    //       ListView.builder(
-                    //         padding: const EdgeInsets.only(bottom: 10, top: 10),
-                    //         shrinkWrap: true,
-                    //         physics: const NeverScrollableScrollPhysics(),
-                    //         itemCount: 3,
-                    //         itemBuilder: (context, index) {
-                    //           return Padding(
-                    //             padding: const EdgeInsets.only(bottom: 15),
-                    //             child: RecentCard(
-                    //               image: AppImages.recentImage,
-                    //               title: 'IGI Airport T3',
-                    //               subTitle: '24 Oct, 08:30 AM',
-                    //               price: '1200 Paid',
-                    //             ),
-                    //           );
-                    //         },
-                    //       ),
-                    //
-                    //       const SizedBox(height: 20),
-                    //
-                    //       // Grab deal of the day
-                    //       Row(
-                    //         children: [
-                    //           CustomImageView(
-                    //             imagePath: AppImages.grabImage,
-                    //             height: 18,
-                    //             width: 18,
-                    //           ),
-                    //           const SizedBox(width: 10),
-                    //           CustomText(
-                    //             'Grab deal of the day',
-                    //             size: 16,
-                    //             weight: FontWeight.w700,
-                    //             color: ColorResource.black,
-                    //           ),
-                    //           const Spacer(),
-                    //           CustomText(
-                    //             'View All',
-                    //             size: 12,
-                    //             weight: FontWeight.w700,
-                    //             color: ColorResource.viewText,
-                    //           ),
-                    //         ],
-                    //       ),
-                    //       const SizedBox(height: 10),
-                    //       SizedBox(
-                    //         height: 108,
-                    //         child: ListView.separated(
-                    //           scrollDirection: Axis.horizontal,
-                    //           padding: const EdgeInsets.only(left: 0),
-                    //           itemCount: 3,
-                    //           separatorBuilder: (context, index) =>
-                    //           const SizedBox(width: 10),
-                    //           itemBuilder: (context, index) {
-                    //             return GrabCard(
-                    //               title: 'LIMITED TIME',
-                    //               subTitle: 'Evening Special',
-                    //               status: 'SAVE15',
-                    //               offer:
-                    //               'Flat 15% off on city rides between 7-10 PM',
-                    //             );
-                    //           },
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                  ],
-                ),
-              ));
-      }
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
-
-
-
   }
-
-
-
-
-
-
-
-
-
-
 
   // ─────────────────────────────────────────────────────────────
   //  Reusable Widgets (unchanged)
@@ -392,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
             blurRadius: 2,
             offset: Offset(0, 1),
             spreadRadius: 0,
-          )
+          ),
         ],
       ),
       child: Column(
@@ -420,8 +371,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
                   color: ColorResource.homeOption,
@@ -486,13 +439,14 @@ class _HomeScreenState extends State<HomeScreen> {
           weight: FontWeight.w700,
           color: ColorResource.viewText,
         ),
-        const Icon(Icons.arrow_forward_ios, size: 20, color: ColorResource.Continue),
+        const Icon(
+          Icons.arrow_forward_ios,
+          size: 20,
+          color: ColorResource.Continue,
+        ),
       ],
     );
   }
-
-
-
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -503,9 +457,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return "Good Afternoon";
     } else if (hour >= 17 && hour < 21) {
       return "Good Evening";
-    } else {
-      return "Good Night";
+    }
+    else {
+      return "Good Evening";
     }
   }
-
 }

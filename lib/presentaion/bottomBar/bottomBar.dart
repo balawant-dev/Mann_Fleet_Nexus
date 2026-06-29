@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:mannfleet/widget/custom_text.dart';
+import 'package:provider/provider.dart';
 import '../../util/color/app_colors.dart';
 import '../../util/image_resource/image_resource.dart';
 import '../booking/ui/vehicleSelectionScreen.dart';
+import '../bookingHistory/provider/bookingHistoryProvider.dart';
 import '../bookingHistory/ui/bookingHistoryScreen.dart';
 import '../home/ui/home_screen.dart';
 import '../newComplaints/ui/newComplaintScreen.dart';
 import '../passes/ui/passes_screen.dart';
 import '../profile/ui/profile_screen.dart';
+import '../shuttleModule/myShuttle/ui/myShuttleScreen.dart';
+import '../shuttleModule/shuttleHistory/ui/shuttleHistoryScreen.dart';
+import '../wallet/ui/walletScreen.dart';
 
 class MainScreen extends StatefulWidget {
   final int currentIndex;
@@ -30,12 +36,17 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+
     currentIndex = widget.currentIndex; // initial value
+
   }
   final List<Widget> pages = [
     const HomeScreen(),
     const BookingHistoryScreen(),
-    const PassesScreen(),
+    // const PassesScreen(),
+    const  MyPassesScreen(),
+ // const ShuttleHistoryScreen(),
+
     const NewComplaint(),
   ];
 
@@ -54,10 +65,10 @@ class _MainScreenState extends State<MainScreen> {
       },
       child: Scaffold(
         body: pages[currentIndex],
-      
+
         bottomNavigationBar: SafeArea(
           child: Container(
-            height: 70,
+            height: 60,
             decoration: const BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -67,7 +78,7 @@ class _MainScreenState extends State<MainScreen> {
                 )
               ],
             ),
-                
+
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -77,21 +88,23 @@ class _MainScreenState extends State<MainScreen> {
                   selectedIcon: AppIcons.activeHome,
                   unSelectedIcon: AppIcons.homeInactive,
                 ),
-                
+
                 bottomItem(
                   index: 1,
                   label: "BOOKINGS",
                   selectedIcon: AppIcons.bookingActive,
                   unSelectedIcon: AppIcons.bookinInactive,
                 ),
-                
+
                 bottomItem(
                   index: 2,
+                  // label: "SHUTTLE",
+                  // label: "WALLET",
                   label: "PASSES",
                   selectedIcon: AppIcons.passActive,
                   unSelectedIcon:  AppIcons.passedInactive,
                 ),
-                
+
                 bottomItem(
                   index: 3,
                   label: "SUPPORT",

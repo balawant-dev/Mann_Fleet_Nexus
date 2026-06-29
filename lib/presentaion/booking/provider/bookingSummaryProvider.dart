@@ -116,6 +116,11 @@ class BookingSummaryProvider extends ChangeNotifier {
     required   String surchargeAmount,
     required   String airportFare,
     required   String nightFare,
+    //New Added
+    String? effectiveDistanceKm,
+    String? effectiveTotalMins,
+    String? idleMinsBetweenLegs,
+    String? returnTravelMins,
   }) async {
     try {
       isLoading = true;
@@ -175,6 +180,11 @@ class BookingSummaryProvider extends ChangeNotifier {
         isGrayMatter: isGrayMatter,
         isPickupAirport: isPickupAirport,
         nightFare: nightFare,
+        //new added
+        effectiveDistanceKm: effectiveDistanceKm,
+        effectiveTotalMins: effectiveTotalMins,
+        idleMinsBetweenLegs: idleMinsBetweenLegs,
+        returnTravelMins: returnTravelMins,
 
       );
 

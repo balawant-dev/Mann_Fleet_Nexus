@@ -29,7 +29,7 @@ class _BuildDateTimeRowCompactState extends State<BuildDateTimeRowCompact> {
             enabled: false,
             style: const TextStyle(
               color: ColorResource.black,
-              fontSize: 14,
+              fontSize: 12,
             ),
             decoration:  InputDecoration(
               hintText: widget.title,

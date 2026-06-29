@@ -1,6 +1,6 @@
 class EditProfileModel {
-  bool? status;
-  String? message;
+  var status;
+  var message;
   Data? data;
 
   EditProfileModel({this.status, this.message, this.data});
@@ -23,21 +23,21 @@ class EditProfileModel {
 }
 
 class Data {
-  String? sId;
-  String? mobile;
-  int? walletBalance;
-  bool? isVerified;
-  String? deviceId;
-  String? deviceType;
-  String? createdAt;
-  String? updatedAt;
-  int? iV;
-  String? fcmToken;
-  String? email;
-  String? gender;
-  String? name;
-  String? profilePic;
-  String? id;
+  var sId;
+  var mobile;
+  var walletBalance;
+  var isVerified;
+  var deviceId;
+  var deviceType;
+  var createdAt;
+  var updatedAt;
+  var iV;
+  var fcmToken;
+  var email;
+  var gender;
+  var name;
+  var profilePic;
+  var id;
 
   Data(
       {this.sId,

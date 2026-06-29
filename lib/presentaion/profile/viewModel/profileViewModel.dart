@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../apiservice/services/secure_storage_service.dart';
 import '../model/getProfileModel.dart';
 
 import '../repo/profileRepo.dart';
@@ -19,6 +20,9 @@ class ProfileDetailViewModel extends ChangeNotifier {
       final res = await api.getProfileApi(context: context);
       getProfileModel = res;
       if (res != null || res.status == true) {
+        await SecureStorageService.saveIsProfileComplete(res.data!.user!.isProfileComplete!);
+
+        // print("Printing isProfileComplete >>>>>>>>>>> ${res.data!.user!.isProfileComplete!}");
         print("Get Profile Successfully");
       }
     } catch (e) {

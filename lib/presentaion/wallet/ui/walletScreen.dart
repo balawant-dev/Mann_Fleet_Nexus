@@ -69,10 +69,10 @@ class _WalletScreenState extends State<WalletScreen> {
                 /// Wallet Card
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(20),
+                  padding:  EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    gradient: const LinearGradient(
+                    gradient:  LinearGradient(
                       colors: [
                         ColorResource.primary,
                         ColorResource.primarySec,

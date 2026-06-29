@@ -1,27 +1,25 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mannfleet/presentaion/home/model/recent_location.dart';
 
 import '../../../../../apiservice/constants/api_constants.dart';
 import '../../../../../apiservice/exceptions/app_exceptions.dart';
 import '../../../../../apiservice/network/api_service.dart';
 import '../../../../../apiservice/network/network_utils.dart';
 import '../../../../../apiservice/services/secure_storage_service.dart';
+import '../../shuttleModule/shuttleList/model/allUniqueStoppageModel.dart';
 import '../ui/model/bannerModel.dart';
+import '../ui/model/choosePackageModel.dart';
 import '../ui/model/oneWayBookingModel.dart';
+import '../ui/model/shuttleShiftStopPageModel.dart';
 
 class HomeRepo {
   final ApiService _api = ApiService();
 
   Future<BannerModel> getBannerApi({required BuildContext context}) async {
     try {
-      final response = await _api.get(
-        ApiConstants.banner,
-        // data: {'mobile': phone,"countryCode":countryCode },
-        requiresAuth: true,
-      );
-      //   await SecureStorageService.saveToken(response['token']);
+      final response = await _api.get(ApiConstants.banner, requiresAuth: true);
       return BannerModel.fromJson(response);
-      //  return LoginModel.fromJson(response['user']);
     } on DioException catch (e) {
       if (e.error is NoInternetException) {
         showNoInternetScreen(
@@ -45,6 +43,240 @@ class HomeRepo {
       throw ApiException(0, e.toString());
     }
   }
+
+  Future<RecentLocationModel> getRecentLocations({
+    required BuildContext context,
+  }) async {
+    try {
+      final response = await _api.get(
+        ApiConstants.recentTripLocations,
+        requiresAuth: true,
+      );
+      return RecentLocationModel.fromJson(response);
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => getRecentLocations(context: context),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => getRecentLocations(context: context),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
+  Future<Map<String, dynamic>> saveFavoriteLocations({
+    required BuildContext context,
+    required String location,
+    required String latitude,
+    required String longitude,
+    required String addressType,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiConstants.recentSearches,
+        requiresAuth: true,
+        data: {
+          "location": location,
+          "latitude": latitude,
+          "longitude": longitude,
+          "addressType": addressType,
+        },
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => saveFavoriteLocations(
+            context: context,
+            location: location,
+            latitude: latitude,
+            longitude: longitude,
+              addressType:addressType
+          ),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => saveFavoriteLocations(
+            context: context,
+            location: location,
+            latitude: latitude,
+            longitude: longitude,
+              addressType:addressType
+          ),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
+  Future<ShuttleShiftStopPageModel> getShuttleShiftStopApi({
+    required BuildContext context,
+    required String source,
+    required String destination,
+    required String date,
+  }) async {
+    try {
+      final response = await _api.get(
+        "${ApiConstants.shuttleShiftStoppage}?source=$source&destination=$destination&date=$date",
+        // data: {'mobile': phone,"countryCode":countryCode },
+        requiresAuth: true,
+      );
+      //   await SecureStorageService.saveToken(response['token']);
+      return ShuttleShiftStopPageModel.fromJson(response);
+      //  return LoginModel.fromJson(response['user']);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        // ✅ Yeh line important hai - 400 error ke bawajood body parse kar rahe hain
+        try {
+          return ShuttleShiftStopPageModel.fromJson(e.response!.data);
+        } catch (_) {
+          rethrow;
+        }
+      }
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => getShuttleShiftStopApi(
+            context: context,
+            source: source,
+            destination: destination,
+            date: date
+          ),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => getShuttleShiftStopApi(
+            context: context,
+            source: source,
+            destination: destination,            date: date
+          ),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
+  Future<AllUniqueStoppageModel> getStoppageNameApi({
+    required BuildContext context,
+    required String search,
+  }) async {
+    try {
+      final response = await _api.get(
+        "${ApiConstants.stoppageNames}?search=$search",
+        // data: {'mobile': phone,"countryCode":countryCode },
+        requiresAuth: true,
+      );
+      //   await SecureStorageService.saveToken(response['token']);
+      return AllUniqueStoppageModel.fromJson(response);
+      //  return LoginModel.fromJson(response['user']);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        // ✅ Yeh line important hai - 400 error ke bawajood body parse kar rahe hain
+        try {
+          return AllUniqueStoppageModel.fromJson(e.response!.data);
+        } catch (_) {
+          rethrow;
+        }
+      }
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => getStoppageNameApi(context: context, search: search),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => getStoppageNameApi(context: context, search: search),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
+  Future<ChoosePackageModel> getHourlyPackageApi({
+    required BuildContext context,
+  }) async {
+    try {
+      final response = await _api.get(
+        ApiConstants.hourlyPackage,
+        // data: {'mobile': phone,"countryCode":countryCode },
+        requiresAuth: true,
+      );
+      //   await SecureStorageService.saveToken(response['token']);
+      return ChoosePackageModel.fromJson(response);
+      //  return LoginModel.fromJson(response['user']);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        // ✅ Yeh line important hai - 400 error ke bawajood body parse kar rahe hain
+        try {
+          return ChoosePackageModel.fromJson(e.response!.data);
+        } catch (_) {
+          rethrow;
+        }
+      }
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => getHourlyPackageApi(context: context),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => getHourlyPackageApi(context: context),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
   Future<OneWayBookingModel> createBooking({
     required BuildContext context,
     required String bookingType,
@@ -69,7 +301,7 @@ class HomeRepo {
         "pickupAddress": pickupAddress,
         "pickupLat": pickupLat,
         "pickupLng": pickupLng,
-        "regionId": "69b3aa39b73e22ea2eaa192f",
+        // "regionId": "69b3aa39b73e22ea2eaa192f",
         "date": date,
         "time": time,
       };
@@ -101,10 +333,20 @@ class HomeRepo {
       );
 
       return OneWayBookingModel.fromJson(response);
-    } catch (e) {
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        return OneWayBookingModel.fromJson(
+          e.response!.data,
+        );
+      }
+
       rethrow;
     }
+    // } catch (e) {
+    //   rethrow;
+    // }
   }
+
   // Future<OneWayBookingModel> createOneWayBooking({
   //   required BuildContext context,
   //   required String bookingType,//round_trip,one_way

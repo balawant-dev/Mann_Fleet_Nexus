@@ -1,21 +1,25 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:mannfleet/presentaion/bookingHistory/ui/trackDriverMap.dart';
+import 'package:mannfleet/widget/navigator_method.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-
 import '../../../apiservice/constants/api_constants.dart';
 import '../../../util/FontResource/FontResource.dart'; // adjust if needed
 import '../../../widget/custom_appBar.dart';
 import '../../../widget/custom_button.dart';
+import '../../../widget/motionToastHelper.dart';
 import '../../../widget/showLoaderFunction.dart';
 import '../model/bookingHistoryDetailModel.dart'; // ← your model file
 import '../provider/bookingHistoryProvider.dart'; // ← your provider
 import 'package:url_launcher/url_launcher.dart';
+
 class BookingHistoryDetailScreen extends StatefulWidget {
   final String id;
 
@@ -40,7 +44,17 @@ class _BookingHistoryDetailScreenState
   @override
   void initState() {
     super.initState();
-    _loadBookingAndMap();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadBookingAndMap();
+    });
+  }
+
+  bool isValidLatLng(double lat, double lng) {
+    return lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180 &&
+        !(lat == 0 && lng == 0);
   }
 
   Future<void> _loadBookingAndMap() async {
@@ -64,8 +78,18 @@ class _BookingHistoryDetailScreenState
     double dropLng =
         double.tryParse(booking.dropoff?.lng?.toString() ?? '0') ?? 0;
 
-    pickupLatLng = LatLng(pickupLat, pickupLng);
-    dropLatLng = LatLng(dropLat, dropLng);
+    print("===============");
+    print("$pickupLat $pickupLng $dropLat $dropLng");
+
+    if (isValidLatLng(pickupLat, pickupLng)) {
+      print("===============1");
+      pickupLatLng = await LatLng(pickupLat, pickupLng);
+      print("===============2");
+    }
+
+    if (isValidLatLng(dropLat, dropLng)) {
+      dropLatLng = LatLng(dropLat, dropLng);
+    }
 
     _setMarkers();
     _drawPolyline();
@@ -118,34 +142,35 @@ class _BookingHistoryDetailScreenState
   }
 
   void _fitMap() {
-    if (mapController == null ||
-        pickupLatLng == null ||
-        dropLatLng == null) return;
+    if (mapController == null || pickupLatLng == null || dropLatLng == null)
+      return;
 
-    double minLat = pickupLatLng!.latitude < dropLatLng!.latitude
-        ? pickupLatLng!.latitude
-        : dropLatLng!.latitude;
+    double minLat =
+        pickupLatLng!.latitude < dropLatLng!.latitude
+            ? pickupLatLng!.latitude
+            : dropLatLng!.latitude;
 
-    double maxLat = pickupLatLng!.latitude > dropLatLng!.latitude
-        ? pickupLatLng!.latitude
-        : dropLatLng!.latitude;
+    double maxLat =
+        pickupLatLng!.latitude > dropLatLng!.latitude
+            ? pickupLatLng!.latitude
+            : dropLatLng!.latitude;
 
-    double minLng = pickupLatLng!.longitude < dropLatLng!.longitude
-        ? pickupLatLng!.longitude
-        : dropLatLng!.longitude;
+    double minLng =
+        pickupLatLng!.longitude < dropLatLng!.longitude
+            ? pickupLatLng!.longitude
+            : dropLatLng!.longitude;
 
-    double maxLng = pickupLatLng!.longitude > dropLatLng!.longitude
-        ? pickupLatLng!.longitude
-        : dropLatLng!.longitude;
+    double maxLng =
+        pickupLatLng!.longitude > dropLatLng!.longitude
+            ? pickupLatLng!.longitude
+            : dropLatLng!.longitude;
 
     LatLngBounds bounds = LatLngBounds(
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
 
-    mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
-    );
+    mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
   }
 
   @override
@@ -156,15 +181,15 @@ class _BookingHistoryDetailScreenState
         builder: (context, provider, child) {
           final model = provider.bookingHistoryDetailModel;
 
+          print("object ${model?.data?.invoice}, ${model?.data?.invoice}");
           return Stack(
             children: [
-              /// ✅ First time loading
               if (provider.isLoading && model == null)
                 const Center(child: CircularProgressIndicator())
               else if (model == null)
-                const Center(child: Text("Failed to load details"))
+                const Center(child: Text("Loading details, please wait..."))
+              // const Center(child: Text("Failed to load details"))
               else
-                /// ✅ Main Content + Pull to refresh
                 RefreshIndicator(
                   onRefresh: () async {
                     await provider.myBookingHistoryDetailApi(
@@ -193,7 +218,7 @@ class _BookingHistoryDetailScreenState
                                     )
                                     : GoogleMap(
                                       initialCameraPosition: CameraPosition(
-                                        target: pickupLatLng!,
+                                        target: pickupLatLng ?? LatLng(0, 0),
                                         zoom: 13,
                                       ),
                                       markers: markers,
@@ -201,7 +226,8 @@ class _BookingHistoryDetailScreenState
                                       polylines: polylines,
                                       onMapCreated: (controller) {
                                         mapController = controller;
-                                        if (pickupLatLng != null && dropLatLng != null) {
+                                        if (pickupLatLng != null &&
+                                            dropLatLng != null) {
                                           _fitMap();
                                         }
                                       },
@@ -213,7 +239,10 @@ class _BookingHistoryDetailScreenState
                         _buildHeader(model.data!),
                         const SizedBox(height: 10),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
@@ -222,13 +251,17 @@ class _BookingHistoryDetailScreenState
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-
                               /// 🔹 Booking Type Chip
                               if (model.data!.bookingType != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF03045E).withOpacity(0.08),
+                                    color: const Color(
+                                      0xFF03045E,
+                                    ).withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -244,14 +277,14 @@ class _BookingHistoryDetailScreenState
                               /// 🔹 OTP Section (Start + End)
                               Row(
                                 children: [
-
                                   /// ✅ Start OTP
-                                  _otpBox(
-                                    context,
-                                    label: "Start",
-                               // otp: "4345"
-                                 otp:model.data?.tripStartOtp ?? "1234",
-                                  ),
+                                  if (model.data!.tripStartOtp != null)
+                                    _otpBox(
+                                      context,
+                                      label: "Start",
+                                      // otp: "4345"
+                                      otp: model.data?.tripStartOtp ?? "",
+                                    ),
 
                                   const SizedBox(width: 12),
 
@@ -263,14 +296,14 @@ class _BookingHistoryDetailScreenState
                                   ),
 
                                   const SizedBox(width: 12),
-
-                                  /// ✅ End OTP
-                                  _otpBox(
-                                    context,
-                                    label: "End",
-                                    otp:model.data?.tripEndOtp ?? "1234",
-                                    // otp:booking.tripEndOtp ?? "4345",
-                                  ),
+                                  if (model.data!.tripEndOtp != null)
+                                    /// ✅ End OTP
+                                    _otpBox(
+                                      context,
+                                      label: "End",
+                                      otp: model.data?.tripEndOtp ?? "",
+                                      // otp:booking.tripEndOtp ?? "4345",
+                                    ),
                                 ],
                               ),
                             ],
@@ -278,189 +311,394 @@ class _BookingHistoryDetailScreenState
                         ),
                         const SizedBox(height: 10),
                         model.data!.driver != null &&
-                            model.data!.vehicle != null &&
-                            model.data!.assignedBy != null
+                                model.data!.vehicle != null &&
+                                model.data!.assignedBy != null &&
+                                model.data?.tripStatus != null &&
+                                (model.data!.tripStatus!.toLowerCase() ==
+                                        "driver_enroute" ||
+                                    model.data!.tripStatus!.toLowerCase() ==
+                                        "driver_assigned" ||
+                                    model.data!.tripStatus!.toLowerCase() ==
+                                        "arrived" ||
+                                    model.data!.tripStatus!.toLowerCase() ==
+                                        "in_progress")
                             ? Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFF1F5F9)),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x0C000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              )
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              /// TITLE
-                              const Text(
-                                'Driver & Vehicle',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF94A3B8),
-                                  letterSpacing: 0.8,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFFF1F5F9),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-
-                              /// DRIVER ROW
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  /// Driver Profile Image
-                                  Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          model.data?.driver?.profilePic ?? "",
-                                          width: 52,
-                                          height: 52,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Image.asset(
-                                              'assets/icon/driverProfile.png',
-                                              width: 52,
-                                              height: 52,
-                                              fit: BoxFit.cover,
-                                            );
-                                          },
-                                        ),
-                                      ),   SizedBox(height: 5,),    Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 4, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.amber.withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.star,
-                                                size: 16, color: Colors.amber),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              model.data?.driver?.rating?.toStringAsFixed(1) ?? "0.0",
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.amber,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-
-                                  const SizedBox(width: 14),
-
-                                  /// Driver & Vehicle Details
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        /// Name + Rating
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                model.data?.driver?.name ?? "Driver",
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                            /// Rating
-
-                                          ],
-                                        ),
-
-
-                                        const SizedBox(height: 6),
-
-                                        /// Phone Number
-                                        Text(
-                                          model.data?.driver?.phone ?? "",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[700],
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 10),
-
-                                        /// Vehicle Details - Better Layout
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFF8FAFC),
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "${model.data?.vehicle?.brand ?? ""} ${model.data?.vehicle?.model ?? ""}",
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                "${model.data?.vehicle?.color ?? ""} • ${model.data?.vehicle?.carNumber ?? ""}",
-                                                style: TextStyle(
-                                                  fontSize: 13.5,
-                                                  color: Colors.grey[700],
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 12),
-
-                                  /// Call Button
-                                  InkWell(
-                                    onTap: () {
-                                      if (model.data?.driver?.phone != null) {
-                                        launchUrl(Uri.parse("tel:${model.data!.driver!.phone}"));
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.call,
-                                        color: Colors.green,
-                                        size: 24,
-                                      ),
-                                    ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x0C000000),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        )
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  /// TITLE
+                                  const Text(
+                                    'Driver & Vehicle',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF94A3B8),
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  /// DRIVER ROW
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      /// Driver Profile Image
+                                      Column(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: Image.network(
+                                              model.data?.driver?.profilePic ??
+                                                  "",
+                                              width: 52,
+                                              height: 52,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) {
+                                                return Image.asset(
+                                                  'assets/icon/driverProfile.png',
+                                                  width: 52,
+                                                  height: 52,
+                                                  fit: BoxFit.cover,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(height: 5),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withOpacity(
+                                                0.15,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.star,
+                                                  size: 16,
+                                                  color: Colors.amber,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  model.data?.driver?.rating
+                                                          ?.toStringAsFixed(
+                                                            1,
+                                                          ) ??
+                                                      "0.0",
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.amber,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(width: 14),
+
+                                      /// Driver & Vehicle Details
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            /// Name + Rating
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    model.data?.driver?.name ??
+                                                        "Driver",
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                /// Rating
+                                              ],
+                                            ),
+
+                                            const SizedBox(height: 6),
+
+                                            /// Phone Number
+                                            Text(
+                                              model.data?.driver?.phone ?? "",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey[700],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 10),
+
+                                            /// Vehicle Details - Better Layout
+                                            Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF8FAFC),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "${model.data?.vehicle?.brand ?? ""} ${model.data?.vehicle?.model ?? ""}",
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    "${model.data?.vehicle?.color ?? ""} • ${model.data?.vehicle?.carNumber ?? ""}",
+                                                    style: TextStyle(
+                                                      fontSize: 13.5,
+                                                      color: Colors.grey[700],
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 12),
+
+                                      /// Call Button
+                                      Column(
+                                        children: [
+                                          InkWell(
+                                            onTap: () {
+                                              if (model.data?.driver?.phone !=
+                                                  null) {
+                                                launchUrl(
+                                                  Uri.parse(
+                                                    "tel:${model.data!.driver!.phone}",
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.withOpacity(
+                                                  0.1,
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.call,
+                                                color: Colors.green,
+                                                size: 24,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 15),
+                                          GestureDetector(
+                                            onTap: () async {
+                                              print("Detail page api perfect");
+                                              await provider
+                                                  .myBookingHistoryDetailApi(
+                                                    context: context,
+                                                    id: widget.id,
+                                                  );
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder: (context) {
+                                                  return const AlertDialog(
+                                                    backgroundColor:
+                                                        Colors.white,
+                                                    content: Row(
+                                                      children: [
+                                                        CircularProgressIndicator(),
+                                                        SizedBox(width: 16),
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Fetching driver current location...",
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              );
+
+                                              /// Wait 3 Seconds
+                                              await Future.delayed(
+                                                const Duration(seconds: 3),
+                                              );
+                                              navPop(context: context);
+                                              print(
+                                                "driverLat:${model.data?.driverCurrentLocation?.lat}    driverLng:${model.data?.driverCurrentLocation?.lng}",
+                                              );
+                                              final driverLat =
+                                                  model
+                                                      .data
+                                                      ?.driverCurrentLocation
+                                                      ?.lat;
+                                              final driverLng =
+                                                  model
+                                                      .data
+                                                      ?.driverCurrentLocation
+                                                      ?.lng;
+
+                                              if (driverLat == null ||
+                                                  driverLng == null) {
+                                                ToastHelper.show(
+                                                  context,
+                                                  message:
+                                                      "Driver location not available",
+                                                  type: ToastType.warning,
+                                                );
+                                                return;
+                                              }
+
+                                              navPush(
+                                                context: context,
+                                                action: TrackDriverMap(
+                                                  startOtp:
+                                                      model
+                                                          .data
+                                                          ?.tripStartOtpVerify ??
+                                                      false,
+
+                                                  driverLat:
+                                                      model
+                                                          .data
+                                                          ?.driverCurrentLocation
+                                                          ?.lat ??
+                                                      28.6279688073116,
+                                                  driverLng:
+                                                      model
+                                                          .data
+                                                          ?.driverCurrentLocation
+                                                          ?.lng ??
+                                                      77.39357790643916,
+                                                  googleApiKey:
+                                                      "AIzaSyAw5iIsWyZnq8Ejy8jLC2jcKvNRxI5Ll3w",
+                                                  pickUpLat:
+                                                      model.data?.pickup?.lat ??
+                                                      28.618125450104635,
+                                                  pickUpLng:
+                                                      model.data?.pickup?.lng ??
+                                                      77.36434922180865,
+                                                  dropLat:
+                                                      model
+                                                          .data
+                                                          ?.dropoff
+                                                          ?.lat ??
+                                                      28.606619071305992,
+                                                  dropLng:
+                                                      model
+                                                          .data
+                                                          ?.dropoff
+                                                          ?.lng ??
+                                                      77.42921869339791,
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 10,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                gradient: const LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF1E88E5),
+                                                    Color(0xFF1565C0),
+                                                  ],
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.15),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 5),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: const [
+                                                  // Icon(
+                                                  //   Icons.local_taxi,
+                                                  //   color: Colors.white,
+                                                  //   size: 20,
+                                                  // ),
+                                                  // SizedBox(width: 10),
+                                                  Text(
+                                                    "Track Driver",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      // letterSpacing: 0.5,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
                             : const SizedBox(),
-
-
 
                         const SizedBox(height: 20),
 
@@ -480,104 +718,70 @@ class _BookingHistoryDetailScreenState
                         const SizedBox(height: 24),
 
                         // Extra Info (Segment, Region, Type, etc.)
-                        _buildAdditionalInfo(model.data!),
-
-
+                        // _buildAdditionalInfo(model.data!),
                         const SizedBox(height: 20),
-                        Row(
+                        if (model.data?.tripStatus == "completed")
+                          Row(
                             children: [
-
                               Expanded(
-                                child: GestureDetector(
+                                child: CustomButton(
                                   onTap: () async {
-                                    showLoader(context);
-                                    try {
-                                      String url = "${ApiConstants.baseUrl}/${model.data?.invoice}";
+                                    if (model.data?.invoice != null &&
+                                        model.data?.invoice != "") {
+                                      try {
+                                        showLoader(context);
+                                        String url =
+                                            "${ApiConstants.baseUrl}/${model.data?.invoice}";
 
-                                      final dir = await getApplicationDocumentsDirectory();
-                                      String fileName = model.data?.invoice?.split('/').last ?? "invoice.pdf";
-                                      String filePath = "${dir.path}/$fileName";
+                                        final dir =
+                                            await getApplicationDocumentsDirectory();
+                                        String fileName =
+                                            model.data?.invoice
+                                                ?.split('/')
+                                                .last ??
+                                            "invoice.pdf";
+                                        String filePath =
+                                            "${dir.path}/$fileName";
 
-                                      Dio dio = Dio();
-                                      await dio.download(url, filePath);
-                                      Navigator.pop(context);
+                                        Dio dio = Dio();
+                                        await dio.download(url, filePath);
+                                        Navigator.pop(context);
 
-                                      await OpenFilex.open(filePath);
-
-                                    } catch (e) {
-                                      print("Error: $e");
+                                        await OpenFilex.open(filePath);
+                                      } catch (e) {
+                                        print("Error: $e");
+                                      }
+                                    } else {
+                                      showLoader(context);
+                                      try {
+                                        final data = await provider
+                                            .generateInvoice(
+                                              context: context,
+                                              bookingId: widget.id,
+                                            );
+                                        Navigator.pop(context);
+                                        await provider
+                                            .myBookingHistoryDetailApi(
+                                              context: context,
+                                              id: widget.id,
+                                              isRefresh: true,
+                                            );
+                                      } catch (e) {
+                                        print("Error: $e");
+                                      }
                                     }
                                   },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 16,vertical: 16),
-                                    decoration: ShapeDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.download, size: 18,),
-                                        SizedBox(width: 2,),
-
-                                        Text(
-                                          'Download Invoice',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: const Color(0xFF0F172A),
-                                            fontSize: 14,
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.43,
-                                          ),
-                                        ),
-
-
-                                      ],
-                                    ),
-                                  ),
+                                  title:
+                                      model.data?.invoice != null &&
+                                              model.data?.invoice != ""
+                                          ? "Download Invoice"
+                                          : 'Generate Invoice',
                                 ),
                               ),
-                              //
-                              // SizedBox(width: 10),
-                              //
-                              // Expanded(
-                              //   child: Container(
-                              //     padding: EdgeInsets.symmetric(horizontal: 16,vertical: 16),
-                              //
-                              //     decoration: ShapeDecoration(
-                              //       color: const Color(0xFFF1F5F9),
-                              //       shape: RoundedRectangleBorder(
-                              //         borderRadius: BorderRadius.circular(16),
-                              //       ),
-                              //     ),
-                              //     child: Row(
-                              //       children: [
-                              //         Icon(Icons.help_outline, size: 18, ),
-                              //         SizedBox(width: 2,),
-                              //
-                              //         Text(
-                              //           'Get Support',
-                              //           textAlign: TextAlign.center,
-                              //           style: TextStyle(
-                              //             color: const Color(0xFF0F172A),
-                              //             fontSize: 14,
-                              //             fontFamily: 'Plus Jakarta Sans',
-                              //             fontWeight: FontWeight.w600,
-                              //             height: 1.43,
-                              //           ),
-                              //         ),
-                              //
-                              //
-                              //       ],
-                              //     ),
-                              //   ),
-                              // ),
-
-                            ]
-                        ),        const SizedBox(height: 10),
+                            ],
+                          ),
+                        if (model.data?.tripStatus == "completed")
+                          const SizedBox(height: 50),
                         // CustomButton(onTap: (){},title: "Rate Your Trip",)
                       ],
                     ),
@@ -590,13 +794,12 @@ class _BookingHistoryDetailScreenState
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: LinearProgressIndicator(minHeight: 2,),
+                  child: LinearProgressIndicator(minHeight: 2),
                 ),
             ],
           );
         },
       ),
-
     );
   }
 
@@ -618,7 +821,6 @@ class _BookingHistoryDetailScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           /// 🔹 Booking ID Row
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,16 +845,11 @@ class _BookingHistoryDetailScreenState
             spacing: 8,
             runSpacing: 8,
             children: [
-
               /// Trip Status
-              _buildTripStatusBadge(
-                booking.tripStatus ?? "unknown",
-              ),
+              _buildTripStatusBadge(booking.tripStatus ?? "unknown"),
 
               /// Payment Status
-              _buildPaymentStatusBadge(
-                booking.paymentStatus ?? "unknown",
-              ),
+              _buildPaymentStatusBadge(booking.paymentStatus ?? "unknown"),
             ],
           ),
         ],
@@ -664,7 +861,6 @@ class _BookingHistoryDetailScreenState
     Color bgColor, textColor;
 
     switch (status.toLowerCase()) {
-
       case "not_started":
         bgColor = Colors.orange.shade100;
         textColor = Colors.orange.shade800;
@@ -717,6 +913,7 @@ class _BookingHistoryDetailScreenState
       ),
     );
   }
+
   String _formatTripStatus(String status) {
     switch (status.toLowerCase()) {
       case "not_started":
@@ -735,12 +932,12 @@ class _BookingHistoryDetailScreenState
         return status.replaceAll("_", " ").toUpperCase();
     }
   }
+
   Widget _buildPaymentStatusBadge(String status) {
     Color bgColor, textColor;
 
     switch (status.toLowerCase()) {
-
-    /// ✅ BOOKING STATUS
+      /// ✅ BOOKING STATUS
       case "completed":
       case "finished":
         bgColor = Colors.green.shade100;
@@ -765,7 +962,7 @@ class _BookingHistoryDetailScreenState
         textColor = Colors.orange.shade900;
         break;
 
-    /// ✅ PAYMENT STATUS
+      /// ✅ PAYMENT STATUS
       case "pending":
         bgColor = Colors.orange.shade100;
         textColor = Colors.orange.shade800;
@@ -809,6 +1006,7 @@ class _BookingHistoryDetailScreenState
       ),
     );
   }
+
   String _formatStatus(String status) {
     switch (status.toLowerCase()) {
       case "payment_done":
@@ -911,34 +1109,63 @@ class _BookingHistoryDetailScreenState
     final created = _formatDate(booking.createdAt);
     final paid = _formatDate(booking.paymentAt);
     final scheduled = _formatDate(booking.scheduledAt);
+    final paymentAtIST = _formatDate(booking.paymentAtIST);
+    final dropoffAtIST = _formatDate(booking.dropoffAtIST);
+    final assignedAtIST = _formatDate(booking.assignedAtIST);
+    final tripStartAtIST = _formatDate(booking.tripStartAtIST);
+    final tripEndAtIST = _formatDate(booking.tripEndAtIST);
+    final cancelledAtIST = _formatDate(booking.cancelledAtIST);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _infoRow("Booking Type", booking.bookingType?.toUpperCase() ?? "—"),
         const SizedBox(height: 12),
-        _infoRow("Created", created),
-        const SizedBox(height: 12),
-        _infoRow("Scheduled", scheduled),
-        const SizedBox(height: 12),
-        _infoRow("Payment Time", paid),
+        // _infoRow("Created At", created),
+        _infoRow("Scheduled At", scheduled),
+        // _infoRow("Payment Completed At", paymentAtIST),
+        // _infoRow("Drop-off At", dropoffAtIST),
+        // _infoRow("Driver Assigned At", assignedAtIST),
+        _infoRow("Trip Started At", tripStartAtIST),
+        _infoRow("Trip Ended At", tripEndAtIST),
+        _infoRow("Cancelled At", cancelledAtIST),
+        // _infoRow("Payment Time", paid),
+        // _infoRow("createdAtIST", created),
+        // const SizedBox(height: 12),
+        // _infoRow("scheduledAtIST", scheduled),
+        // const SizedBox(height: 12),     _infoRow("paymentAtIST", paymentAtIST),
+        // const SizedBox(height: 12),     _infoRow("dropoffAtIST", dropoffAtIST),
+        // const SizedBox(height: 12),     _infoRow("assignedAtIST", assignedAtIST),
+        // const SizedBox(height: 12),     _infoRow("tripStartAtIST", tripStartAtIST),
+        // const SizedBox(height: 12),     _infoRow("tripEndAtIST", tripEndAtIST),
+        // const SizedBox(height: 12),     _infoRow("cancelledAtIST", cancelledAtIST),
+        // const SizedBox(height: 12),
+        // _infoRow("Payment Time", paid),
         if (booking.estimatedKm != null || booking.estimatedMins != null) ...[
           const SizedBox(height: 12),
           _infoRow(
-            "Estimated Distance",
+            "Total Distance",
             "${booking.estimatedKm?.toStringAsFixed(1) ?? '—'} km",
           ),
           const SizedBox(height: 8),
-          _infoRow("Estimated Time", "${booking.estimatedMins ?? '—'} mins"),
+          _infoRow("Travel Time", "${booking.estimatedMins ?? '—'} mins"),
         ],
       ],
     );
   }
 
   Widget _buildFareAndPayment(BookingHistoryDetailData booking) {
+    final walletUsed = booking.fareBreakup?.finalFare?.walletUsed ?? "-";
     final est = booking.pricingSnapshot;
     final fareBreak = booking.fareBreakup?.estimated;
     final payment = booking.payment;
+    final finalAmount =
+        (fareBreak?.totalFare ?? 0) + (payment?.extraPayment?.amount ?? 0);
+    print("Total totalFare >>>>>>>>>>>>>>${fareBreak?.totalFare ?? 0}");
+    print(
+      "Total extraPayment >>>>>>>>>>>>>>${payment?.extraPayment?.amount ?? 0}",
+    );
+    print("Total amount >>>>>>>>>>>>>>$finalAmount");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -952,57 +1179,74 @@ class _BookingHistoryDetailScreenState
           ),
         ),
         const SizedBox(height: 16),
-
-        _fareRow("Base Fare", fareBreak?.baseFare),
-        _fareRow("Distance Charge", fareBreak?.distanceCharge),
-        _fareRow("Time Charge", fareBreak?.timeCharge),
-        _fareRow("Surge", fareBreak?.surgeCharge),
-        _fareRow("Surge Charge Amount", fareBreak?.surchargeAmount),
-        _fareRow("Airport Fare", fareBreak?.airportFare),
-        _fareRow("Night Fare", fareBreak?.nightFare),
+        ...[
+          _fareRowIfNotZero("Base Fare", fareBreak?.baseFare),
+          _fareRowIfNotZero("Distance Charge", fareBreak?.distanceCharge),
+          _fareRowIfNotZero("Time Charge", fareBreak?.timeCharge),
+          _fareRowIfNotZero("Surge", fareBreak?.surgeCharge),
+          _fareRowIfNotZero("MCD Toll Charge", fareBreak?.mcdTollCharge),
+          _fareRowIfNotZero("Surge Charge Amount", fareBreak?.surchargeAmount),
+          _fareRowIfNotZero("Airport Fare", fareBreak?.airportFare),
+          _fareRowIfNotZero("Night Fare", fareBreak?.nightFare),
+          _fareRowIfNotZero("Extra Payment", payment?.extraPayment?.amount),
+        ].whereType<Widget>(),
+        // _fareRow("Base Fare", fareBreak?.baseFare),
+        // _fareRow("Distance Charge", fareBreak?.distanceCharge),
+        // _fareRow("Time Charge", fareBreak?.timeCharge),
+        // _fareRow("Surge", fareBreak?.surgeCharge),
+        // _fareRow("Surge Charge Amount", fareBreak?.surchargeAmount),
+        // _fareRow("Airport Fare", fareBreak?.airportFare),
+        // _fareRow("Night Fare", fareBreak?.nightFare),
         _fareRow(
           "GST (${est?.gstPercent?.toStringAsFixed(1) ?? '5'}%)",
           fareBreak?.gstAmount,
         ),
+        _fareRow("Wallet Used", walletUsed, isNeg: true),
+        _fareRow("Total Fare", fareBreak?.totalFare),
         const Divider(),
-        _fareRow("Total Fare", fareBreak?.totalFare, isBold: true),
+        _fareRow("Total Amount", finalAmount, isBold: true),
 
-        const SizedBox(height: 20),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Payment Status",
-              style: TextStyle(
-                fontFamily: FontResource.plusJakartaSans,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              booking.paymentStatus?.toUpperCase() ?? "—",
-              style: TextStyle(
-                fontFamily: FontResource.plusJakartaSans,
-                color:
-                    booking.paymentStatus == "paid"
-                        ? Colors.green
-                        : Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (payment != null) ...[
-          _infoRow("Method", payment.method?.toUpperCase()),
-          _infoRow(
-            "Paid Amount",
-            "₹ ${payment.paidAmount?.toStringAsFixed(2) ?? '—'}",
-          ),
-          _infoRow("Transaction ID", payment.gatewayRef ?? "—"),
-        ],
+        // const SizedBox(height: 20),
+        //
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //     const Text(
+        //       "Payment Status",
+        //       style: TextStyle(
+        //         fontFamily: FontResource.plusJakartaSans,
+        //         fontWeight: FontWeight.w600,
+        //       ),
+        //     ),
+        //     Text(
+        //       booking.paymentStatus?.toUpperCase() ?? "—",
+        //       style: TextStyle(
+        //         fontFamily: FontResource.plusJakartaSans,
+        //         color: booking.paymentStatus == "paid"
+        //             ? Colors.green
+        //             : Colors.orange,
+        //         fontWeight: FontWeight.bold,
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        // const SizedBox(height: 8),
+        // if (payment != null) ...[
+        //   _infoRow("Method", payment.method?.toUpperCase()),
+        //   _infoRow(
+        //     "Paid Amount",
+        //     "₹ ${payment.paidAmount?.toStringAsFixed(2) ?? '—'}",
+        //   ),
+        //   _infoRow("Transaction ID", payment.gatewayRef ?? "—"),
+        // ],
       ],
     );
+  }
+
+  Widget? _fareRowIfNotZero(String label, double? amount) {
+    if (amount == null || amount <= 0) return null;
+
+    return _fareRow(label, amount);
   }
 
   Widget _buildAdditionalInfo(BookingHistoryDetailData booking) {
@@ -1034,25 +1278,42 @@ class _BookingHistoryDetailScreenState
   }
 
   Widget _infoRow(String label, String? value) {
+    if (value == null ||
+        value.trim().isEmpty ||
+        value.trim() == "—" ||
+        value.trim().toLowerCase() == "null") {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: FontResource.plusJakartaSans,
-              color: Colors.grey[700],
-              fontSize: 13.5,
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: FontResource.plusJakartaSans,
+                color: Colors.grey[700],
+                fontSize: 13.5,
+              ),
             ),
           ),
-          Text(
-            value ?? "—",
-            style: const TextStyle(
-              fontFamily: FontResource.plusJakartaSans,
-              fontWeight: FontWeight.w500,
-              fontSize: 13.5,
+
+          const Text(" : "),
+
+          Expanded(
+            flex: 5,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontFamily: FontResource.plusJakartaSans,
+                fontWeight: FontWeight.w500,
+                fontSize: 13.5,
+              ),
             ),
           ),
         ],
@@ -1060,7 +1321,39 @@ class _BookingHistoryDetailScreenState
     );
   }
 
-  Widget _fareRow(String label, double? amount, {bool isBold = false}) {
+  // Widget _infoRow(String label, String? value) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(vertical: 4),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         Text(
+  //           label,
+  //           style: TextStyle(
+  //             fontFamily: FontResource.plusJakartaSans,
+  //             color: Colors.grey[700],
+  //             fontSize: 13.5,
+  //           ),
+  //         ),
+  //         Text(
+  //           value ?? "—",
+  //           style: const TextStyle(
+  //             fontFamily: FontResource.plusJakartaSans,
+  //             fontWeight: FontWeight.w500,
+  //             fontSize: 13.5,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _fareRow(
+    String label,
+    double? amount, {
+    bool isBold = false,
+    isNeg = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -1075,7 +1368,9 @@ class _BookingHistoryDetailScreenState
             ),
           ),
           Text(
-            amount != null ? "₹ ${amount.toStringAsFixed(2)}" : "—",
+            amount != null
+                ? " ${isNeg ? "-" : ""}₹ ${amount.toStringAsFixed(2)}"
+                : "—",
             style: TextStyle(
               fontFamily: FontResource.plusJakartaSans,
               fontSize: 13.5,
@@ -1102,12 +1397,12 @@ class _BookingHistoryDetailScreenState
     if (type == null || type.isEmpty) return "—";
 
     return type
-        .replaceAll("_", " ")              // one_way → one way
-        .split(" ")                        // ["one", "way"]
-        .map((word) =>
-    word[0].toUpperCase() + word.substring(1)) // One Way
+        .replaceAll("_", " ") // one_way → one way
+        .split(" ") // ["one", "way"]
+        .map((word) => word[0].toUpperCase() + word.substring(1)) // One Way
         .join(" ");
   }
+
   Widget _otpBox(BuildContext context, {required String label, String? otp}) {
     return Row(
       children: [
@@ -1116,16 +1411,13 @@ class _BookingHistoryDetailScreenState
           children: [
             Text(
               "$label OTP",
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
             const SizedBox(height: 2),
             Text(
               otp ?? "----",
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 3,
               ),
@@ -1155,11 +1447,7 @@ class _BookingHistoryDetailScreenState
               color: const Color(0xFF03045E).withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(
-              Icons.copy,
-              size: 14,
-              color: Color(0xFF03045E),
-            ),
+            child: const Icon(Icons.copy, size: 14, color: Color(0xFF03045E)),
           ),
         ),
       ],

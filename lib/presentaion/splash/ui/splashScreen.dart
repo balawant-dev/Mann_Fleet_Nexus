@@ -201,7 +201,7 @@ class _SplashScreenState extends State<SplashScreen> {
         width: MediaQuery.of(context).size.width,
         // color: ColorResource.splashBackground,
         decoration: BoxDecoration(
-          image: DecorationImage(image: AssetImage("assets/images/spalshBackround.jpeg"),fit: BoxFit.cover)
+          image: DecorationImage(image: AssetImage("assets/images/sooo.jpeg"),fit: BoxFit.cover)
         ),
         // child: Center(
         //   child: Column(

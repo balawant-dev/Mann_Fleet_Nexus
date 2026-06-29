@@ -158,6 +158,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "dropdown_search",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/dropdown_search-6.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "eventify",
       "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/eventify-1.0.1",
       "packageUri": "lib/",
@@ -284,6 +290,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "flutter_screenutil",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_screenutil-5.9.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "flutter_secure_storage",
       "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_secure_storage-10.0.0",
       "packageUri": "lib/",
@@ -344,6 +356,78 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "geoclue",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geoclue-0.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.16"
+    },
+    {
+      "name": "geocoding",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geocoding-4.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "geocoding_android",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geocoding_android-4.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "geocoding_ios",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geocoding_ios-3.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "geocoding_platform_interface",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geocoding_platform_interface-3.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "geolocator",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator-14.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_android",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_android-5.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_apple",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_apple-2.3.14",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_linux",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_linux-0.2.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_platform_interface",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_platform_interface-4.2.8",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_web",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_web-4.1.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "geolocator_windows",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/geolocator_windows-0.2.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
       "name": "google_maps",
       "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/google_maps-8.2.0",
       "packageUri": "lib/",
@@ -382,6 +466,12 @@
     {
       "name": "google_places_flutter",
       "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/google_places_flutter-2.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "gsettings",
+      "rootUri": "file:///C:/Users/Windows%2010/AppData/Local/Pub/Cache/hosted/pub.dev/gsettings-0.2.8",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -944,7 +1034,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2026-04-13T09:17:03.231220Z",
+  "generated": "2026-06-15T12:50:49.040806Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///D:/src/flutter_3_29_3",

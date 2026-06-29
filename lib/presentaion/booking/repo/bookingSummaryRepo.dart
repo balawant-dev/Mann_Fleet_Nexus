@@ -126,6 +126,7 @@ class BookingSummaryRepo {
     String? bookedKms,
     String? tripDays,
     String? toCity,
+
     required   bool isPickupAirport,
     required   bool isDropAirport,
     required    bool isAirportTrip,
@@ -133,6 +134,12 @@ class BookingSummaryRepo {
     required   String surchargeAmount,
     required   String airportFare,
     required   String nightFare,
+    //New Add
+
+    String? effectiveDistanceKm,
+    String? effectiveTotalMins,
+    String? idleMinsBetweenLegs,
+    String? returnTravelMins,
   }) async {
     try {
       final data = {
@@ -149,6 +156,7 @@ class BookingSummaryRepo {
 
         "scheduledDate": scheduledDate,
         "scheduledTime": scheduledTime,
+
 
         "fareBreakdown": {
           "baseFare": baseFare,
@@ -192,6 +200,13 @@ class BookingSummaryRepo {
       }
 
       if (bookingType == "round_trip") {
+        //round trip me ye add hoga
+        // "roundTripEffective": {
+        //             "effectiveDistanceKm": 93.9,
+        //             "effectiveTotalMins": 1588,
+        //             "idleMinsBetweenLegs": 1412,
+        //             "returnTravelMins": 88
+        //         },
         data.addAll({
           "dropLat": dropLat,
           "dropLng": dropLng,
@@ -205,6 +220,39 @@ class BookingSummaryRepo {
           "returnDate": returnDate??"2026-12-25",
           "returnTime": returnTime??"23:00",
         });
+
+        /// 🔥 ADD THIS BLOCK
+        if (effectiveDistanceKm != null ||
+            effectiveTotalMins != null ||
+            idleMinsBetweenLegs != null ||
+            returnTravelMins != null) {
+
+          data["roundTripDetail"] = {
+            if (effectiveDistanceKm != null)
+              "effectiveDistanceKm": effectiveDistanceKm,
+            if (effectiveTotalMins != null)
+              "effectiveTotalMins": effectiveTotalMins,
+            if (idleMinsBetweenLegs != null)
+              "idleMinsBetweenLegs": idleMinsBetweenLegs,
+            if (returnTravelMins != null)
+              "returnTravelMins": returnTravelMins,
+          };
+        }
+        // if (effectiveDistanceKm != null ||
+        //     effectiveTotalMins != null ||
+        //     idleMinsBetweenLegs != null ||
+        //     returnTravelMins != null) {
+        //   data["roundTripDetail"] = {
+        //     if (effectiveDistanceKm != null)
+        //       "effectiveDistanceKm": effectiveDistanceKm,
+        //     if (effectiveTotalMins != null)
+        //       "effectiveTotalMins": effectiveTotalMins,
+        //     if (idleMinsBetweenLegs != null)
+        //       "idleMinsBetweenLegs": idleMinsBetweenLegs,
+        //     if (returnTravelMins != null)
+        //       "returnTravelMins": returnTravelMins,
+        //   };
+        // }
       }
 
       if (bookingType == "intercity") {

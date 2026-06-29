@@ -9,7 +9,6 @@ import '../model/verifyOtpModel.dart';
 import '../repo/verifyOtpRepo.dart';
 
 class OtpProvider with ChangeNotifier {
-
   int seconds = 45;
   Timer? timer;
 
@@ -34,69 +33,68 @@ class OtpProvider with ChangeNotifier {
   }
 
   void OtoVerify(BuildContext context) {
-    navPushReplace(
-      context: context,
-      action: const MainScreen(currentIndex: 0,),
-    );
+    navPushReplace(context: context, action: const MainScreen(currentIndex: 0));
   }
-
 
   final api = VerifyOtpRepo();
 
   VerifyOtpModel? verifyOtpModel;
   ResendOtpModel? resendOtpModel;
 
-
   bool isLoading = false;
 
-  Future<void> verifyOtp({    required String phone,
+  Future<void> verifyOtp({
+    required String phone,
     required String otp,
-    required String fcmToken ,
-    required String deviceId ,
-    required String deviceType ,
-    required BuildContext context,}) async {
+    required String fcmToken,
+    required String deviceId,
+    required String deviceType,
+    required BuildContext context,
+  }) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final res = await api.verifyOtp(phone: phone, context: context,otp: otp,fcmToken: fcmToken,deviceType: deviceType,deviceId: deviceId );
+      final res = await api.verifyOtp(
+        phone: phone,
+        context: context,
+        otp: otp,
+        fcmToken: fcmToken,
+        deviceType: deviceType,
+        deviceId: deviceId,
+      );
       verifyOtpModel = res;
-      if(res!=null||res.status==true){
+      if (res != null || res.status == true) {
         print("verifyOtpModel Successfully");
         await SecureStorageService.saveToken(res.token!);
+        await SecureStorageService.saveIsProfileComplete(res.data!.user!.isProfileComplete!);
         print("Printing Token >>>>>>>>>>> ${res.token!}");
+        print("Printing isProfileComplete >>>>>>>>>>> ${res.data!.user!.isProfileComplete!}");
       }
-
     } catch (e) {
       debugPrint("Error in verifyOtpModel: $e");
     } finally {
       isLoading = false;
       notifyListeners();
     }
-
   }
+
   Future<void> resendOtpApi({
     required BuildContext context,
     required String phone,
   }) async {
     try {
-
-      final res = await api.resendOtpApi(
-        phone: phone,
-        context: context,
-      );
+      final res = await api.resendOtpApi(phone: phone, context: context);
 
       resendOtpModel = res;
 
       if (res != null && res.status == true) {
         debugPrint("resendOtpModel Successfully");
       }
-
     } catch (e) {
       debugPrint("Error in sendOtp: $e");
     }
   }
-
 
   @override
   void dispose() {

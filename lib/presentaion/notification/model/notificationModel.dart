@@ -1,10 +1,10 @@
 class GetNotificationModel {
-  bool? status;
-  int? unreadCount;
-  int? totalResult;
-  int? totalPage;
-  int? currentPage;
-  String? message;
+  var status;
+  var unreadCount;
+  var totalResult;
+  var totalPage;
+  var currentPage;
+  var message;
   List<Data>? data;
 
   GetNotificationModel(
@@ -47,13 +47,13 @@ class GetNotificationModel {
 }
 
 class Data {
-  String? sId;
+  var sId;
   Booking? booking;
-  String? type;
-  String? title;
-  String? body;
-  bool? isRead;
-  String? createdAt;
+  var type;
+  var title;
+  var body;
+  var isRead;
+  var createdAt;
 
   Data(
       {this.sId,
@@ -91,17 +91,17 @@ class Data {
 }
 
 class Booking {
-  String? sId;
-  String? bookingNumber;
-  String? overallStatus;
-  String? createdAtIST;
-  String? scheduledAtIST;
-  String? paymentAtIST;
-  String? assignedAtIST;
-  String? tripStartAtIST;
-  String? tripEndAtIST;
-  String? cancelledAtIST;
-  String? id;
+  var sId;
+  var bookingNumber;
+  var overallStatus;
+  var createdAtIST;
+  var scheduledAtIST;
+  var paymentAtIST;
+  var assignedAtIST;
+  var tripStartAtIST;
+  var tripEndAtIST;
+  var cancelledAtIST;
+  var id;
 
   Booking(
       {this.sId,

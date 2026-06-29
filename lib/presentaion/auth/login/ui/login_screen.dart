@@ -350,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               /// 🔵 LEFT PANEL (LOGO + BRANDING)
               Container(
-                width: 260,
+                width: 230,
                 color: ColorResource.primary,
                 padding: const EdgeInsets.all(30),
                 child: Column(
@@ -403,7 +403,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-              ),
+              ),SizedBox(width: 10,),
 
               /// ⚪ RIGHT PANEL (FORM)
               Expanded(
@@ -442,41 +442,41 @@ class _LoginScreenState extends State<LoginScreen> {
                           /// COUNTRY + PHONE
                           Row(
                             children: [
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text("Code"),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      height: 50,
-                                      width: 80,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: ColorResource.inputBorder,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          CountryCodePicker(
-                                            onChanged: (country) {
-                                              provider.changeCountryCode(
-                                                  country.dialCode ?? "+91");
-                                            },
-                                            initialSelection: 'IN',
-                                            showFlag: false,
-                                          ),
-                                        //  const Icon(Icons.arrow_drop_down),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              // Expanded(
+                              //   flex: 1,
+                              //   child: Column(
+                              //     crossAxisAlignment: CrossAxisAlignment.start,
+                              //     children: [
+                              //       const Text("Code"),
+                              //       const SizedBox(height: 8),
+                              //       Container(
+                              //         height: 50,
+                              //         width: 80,
+                              //         decoration: BoxDecoration(
+                              //           borderRadius: BorderRadius.circular(12),
+                              //           border: Border.all(
+                              //             color: ColorResource.inputBorder,
+                              //           ),
+                              //         ),
+                              //         child: Row(
+                              //           children: [
+                              //             CountryCodePicker(
+                              //               onChanged: (country) {
+                              //                 provider.changeCountryCode(
+                              //                     country.dialCode ?? "+91");
+                              //               },
+                              //               initialSelection: 'IN',
+                              //               showFlag: false,
+                              //             ),
+                              //           //  const Icon(Icons.arrow_drop_down),
+                              //           ],
+                              //         ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
 
-                              const SizedBox(width: 20),
+                              const SizedBox(width: 10),
 
                               Expanded(
                                 flex: 4,

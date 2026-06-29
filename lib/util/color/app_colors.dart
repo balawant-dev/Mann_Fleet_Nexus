@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ColorResource {
   static const Color primary = Color(0xFF03045E);
+  static const Color primarySec = Color(0xFF03048a);
   static const Color splashBackground = Color(0xFF2A2929);
   static const Color onbording = Color(0xFF040916);
   static const Color Continue = Color(0xFF94A3B8);

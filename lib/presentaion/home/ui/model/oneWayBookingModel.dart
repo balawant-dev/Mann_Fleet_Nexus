@@ -45,6 +45,9 @@ class Data {
   var isDropAirport;
   var isAirportTrip;
   var isGrayMatter;
+  WalletBonusRestriction?walletBonusRestriction;
+  IntercitySuggestion? intercitySuggestion;
+  RoundTripEffective? roundTripEffective;
   List<Segments>? segments;
 
   Data(
@@ -70,6 +73,9 @@ class Data {
         this.isDropAirport,
         this.isAirportTrip,
         this.isGrayMatter,
+        this.intercitySuggestion,
+        this.roundTripEffective,
+        this.walletBonusRestriction,
         this.segments});
 
   Data.fromJson(Map<String, dynamic> json) {
@@ -95,6 +101,15 @@ class Data {
     isPickupAirport = json['isPickupAirport'];
     isAirportTrip = json['isAirportTrip'];
     isGrayMatter = json['isGrayMatter'];
+    walletBonusRestriction = json['walletBonusRestriction'] != null
+        ? new WalletBonusRestriction.fromJson(json['walletBonusRestriction'])
+        : null;
+    roundTripEffective = json['roundTripEffective'] != null
+        ? RoundTripEffective.fromJson(json['roundTripEffective'])
+        : null;
+    intercitySuggestion = json['intercitySuggestion'] != null
+        ? IntercitySuggestion.fromJson(json['intercitySuggestion'])
+        : null;
     if (json['segments'] != null) {
       segments = <Segments>[];
       json['segments'].forEach((v) {
@@ -126,6 +141,15 @@ class Data {
     data['isGrayMatter'] = this.isGrayMatter;
     data['isDropAirport'] = this.isDropAirport;
     data['isPickupAirport'] = this.isPickupAirport;
+    if (this.walletBonusRestriction != null) {
+      data['walletBonusRestriction'] = this.walletBonusRestriction!.toJson();
+    }
+    if (roundTripEffective != null) {
+      data['roundTripEffective'] = roundTripEffective!.toJson();
+    }
+    if (intercitySuggestion != null) {
+      data['intercitySuggestion'] = intercitySuggestion!.toJson();
+    }
     data['isAirportTrip'] = this.isAirportTrip;
     if (this.segments != null) {
       data['segments'] = this.segments!.map((v) => v.toJson()).toList();
@@ -141,6 +165,7 @@ class Segments {
   var maxCapacity;
   var pricingId;
   var estimatedFare;
+  var message;
   FareBreakdown? fareBreakdown;
   var surgeActive;
   var surgeMultiplier;
@@ -149,6 +174,8 @@ class Segments {
   var timeType;
   var cancellationFee;
   var bestValue;
+  var finalPayableAmount;
+  var walletDiscount;
 
   Segments(
       {this.segmentId,
@@ -157,6 +184,7 @@ class Segments {
         this.maxCapacity,
         this.pricingId,
         this.estimatedFare,
+        this.message,
         this.fareBreakdown,
         this.surgeActive,
         this.surgeMultiplier,
@@ -164,7 +192,10 @@ class Segments {
         this.surgeType,
         this.timeType,
         this.cancellationFee,
-        this.bestValue});
+        this.bestValue,
+        this.finalPayableAmount,
+        this.walletDiscount,
+      });
 
   Segments.fromJson(Map<String, dynamic> json) {
     segmentId = json['segmentId'];
@@ -173,6 +204,7 @@ class Segments {
     maxCapacity = json['maxCapacity'];
     pricingId = json['pricingId'];
     estimatedFare = json['estimatedFare'];
+    message = json['message'];
     fareBreakdown = json['fareBreakdown'] != null
         ? new FareBreakdown.fromJson(json['fareBreakdown'])
         : null;
@@ -183,6 +215,8 @@ class Segments {
     timeType = json['timeType'];
     cancellationFee = json['cancellationFee'];
     bestValue = json['bestValue'];
+    finalPayableAmount = json['finalPayableAmount'];
+    walletDiscount = json['walletDiscount'];
   }
 
   Map<String, dynamic> toJson() {
@@ -193,6 +227,7 @@ class Segments {
     data['maxCapacity'] = this.maxCapacity;
     data['pricingId'] = this.pricingId;
     data['estimatedFare'] = this.estimatedFare;
+    data['message'] = this.message;
     if (this.fareBreakdown != null) {
       data['fareBreakdown'] = this.fareBreakdown!.toJson();
     }
@@ -203,6 +238,8 @@ class Segments {
     data['timeType'] = this.timeType;
     data['cancellationFee'] = this.cancellationFee;
     data['bestValue'] = this.bestValue;
+    data['finalPayableAmount'] = this.finalPayableAmount;
+    data['walletDiscount'] = this.walletDiscount;
     return data;
   }
 }
@@ -217,6 +254,7 @@ class FareBreakdown {
   var gstAmount;
   var tollCharge;
   var surchargeAmount;
+  var mcdTollCharge;
   var airportFare;
   var nightFare;
   var totalFare;
@@ -236,6 +274,7 @@ class FareBreakdown {
         this.airportFare,
         this.nightFare,
         this.totalFare,
+        this.mcdTollCharge,
         this.minFareApplied,
         this.cancellationFee});
 
@@ -250,6 +289,7 @@ class FareBreakdown {
     tollCharge = json['tollCharge'];
     surchargeAmount = json['surchargeAmount'];
     airportFare = json['airportFare'];
+    mcdTollCharge = json['mcdTollCharge'];
     nightFare = json['nightFare'];
     totalFare = json['totalFare'];
     minFareApplied = json['minFareApplied'];
@@ -268,10 +308,134 @@ class FareBreakdown {
     data['tollCharge'] = this.tollCharge;
     data['surchargeAmount'] = this.surchargeAmount;
     data['airportFare'] = this.airportFare;
+    data['mcdTollCharge'] = this.mcdTollCharge;
     data['nightFare'] = this.nightFare;
     data['totalFare'] = this.totalFare;
     data['minFareApplied'] = this.minFareApplied;
     data['cancellationFee'] = this.cancellationFee;
     return data;
   }
+}class WalletBonusRestriction {
+  var active;
+  var message;
+  var minFareRequired;
+
+
+
+  WalletBonusRestriction(
+      {this.active,
+        this.message,
+        this.minFareRequired,
+
+   });
+
+  WalletBonusRestriction.fromJson(Map<String, dynamic> json) {
+    active = json['active'];
+    message = json['message'];
+    minFareRequired = json['minFareRequired'];
+
+
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['active'] = this.active;
+    data['message'] = this.message;
+    data['minFareRequired'] = this.minFareRequired;
+
+
+    return data;
+  }
 }
+class IntercitySuggestion {
+  var message;
+  var suggestedBookingType;
+  var reason;
+
+  IntercitySuggestion({
+    this.message,
+    this.suggestedBookingType,
+    this.reason,
+  });
+
+  IntercitySuggestion.fromJson(Map<String, dynamic> json) {
+    message = json['message'];
+    suggestedBookingType = json['suggestedBookingType'];
+    reason = json['reason'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['message'] = message;
+    data['suggestedBookingType'] = suggestedBookingType;
+    data['reason'] = reason;
+    return data;
+  }
+}
+
+
+
+
+class RoundTripEffective {
+  var effectiveDistanceKm;
+  var effectiveTotalMins;
+  var idleMinsBetweenLegs;
+  var returnTravelMins;
+  var oneWayDistanceKm;
+  var oneWayTravelMins;
+
+
+
+  RoundTripEffective({
+    this.effectiveDistanceKm,
+    this.effectiveTotalMins,
+    this.idleMinsBetweenLegs,
+    this.returnTravelMins,
+    this.oneWayDistanceKm,
+    this.oneWayTravelMins,
+  });
+
+  RoundTripEffective.fromJson(Map<String, dynamic> json) {
+    effectiveDistanceKm = json['effectiveDistanceKm'];
+    effectiveTotalMins = json['effectiveTotalMins'];
+    idleMinsBetweenLegs = json['idleMinsBetweenLegs'];
+    returnTravelMins = json['returnTravelMins'];
+    oneWayDistanceKm = json['oneWayDistanceKm'];
+    oneWayTravelMins = json['oneWayTravelMins'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['effectiveDistanceKm'] = effectiveDistanceKm;
+    data['effectiveTotalMins'] = effectiveTotalMins;
+    data['idleMinsBetweenLegs'] = idleMinsBetweenLegs;
+    data['returnTravelMins'] = returnTravelMins;
+    data['oneWayDistanceKm'] = oneWayDistanceKm;
+    data['oneWayTravelMins'] = oneWayTravelMins;
+    return data;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

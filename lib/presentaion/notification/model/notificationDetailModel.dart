@@ -1,6 +1,6 @@
 class NotificationDetailModel {
-  bool? status;
-  String? message;
+  var status;
+  var message;
   NotificationDetailData? data;
 
   NotificationDetailModel({this.status, this.message, this.data});
@@ -23,15 +23,15 @@ class NotificationDetailModel {
 }
 
 class NotificationDetailData {
-  String? sId;
-  String? driver;
+  var sId;
+  var driver;
   Booking? booking;
-  String? type;
-  String? title;
-  String? body;
-  bool? isRead;
-  String? createdAt;
-  int? iV;
+  var type;
+  var title;
+  var body;
+  var isRead;
+  var createdAt;
+  var iV;
 
   NotificationDetailData(
       {this.sId,
@@ -75,18 +75,18 @@ class NotificationDetailData {
 }
 
 class Booking {
-  String? sId;
-  String? bookingNumber;
-  String? tripStatus;
-  String? overallStatus;
-  String? createdAtIST;
-  String? scheduledAtIST;
-  String? paymentAtIST;
-  String? assignedAtIST;
-  String? tripStartAtIST;
-  String? tripEndAtIST;
-  String? cancelledAtIST;
-  String? id;
+  var sId;
+  var bookingNumber;
+  var tripStatus;
+  var overallStatus;
+  var createdAtIST;
+  var scheduledAtIST;
+  var paymentAtIST;
+  var assignedAtIST;
+  var tripStartAtIST;
+  var tripEndAtIST;
+  var cancelledAtIST;
+  var id;
 
   Booking(
       {this.sId,

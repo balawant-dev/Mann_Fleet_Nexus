@@ -67,6 +67,15 @@ dependencies:
   permission_handler: ^11.3.0
   package_info_plus: ^9.0.1
   url_launcher: ^6.3.2
+
+#  path_provider: ^2.1.2
+#  open_filex: ^4.4.0
+#  permission_handler: ^11.3.0
+  dropdown_search: ^6.0.2
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
+  flutter_screenutil: ^5.9.3
+
 #  bloc: ^9.2.0
 
 

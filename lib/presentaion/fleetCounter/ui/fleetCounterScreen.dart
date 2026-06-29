@@ -19,7 +19,7 @@ class FleetCounterScreen extends StatelessWidget {
           children: [
             /// LEFT SIDE PANEL (LOGO + TITLE)
             Container(
-              width: 260,
+              width: 240,
               color: ColorResource.primary,
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -129,7 +129,7 @@ class FleetCounterScreen extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        height: 180,
+        height: 200,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,

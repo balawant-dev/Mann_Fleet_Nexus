@@ -10,6 +10,7 @@ import 'package:mannfleet/widget/navigator_method.dart';
 import 'package:provider/provider.dart';
 import '../../../widget/motionToastHelper.dart';
 import '../../../widget/showLoaderFunction.dart';
+import '../../bottomBar/bottomBar.dart';
 import '../viewModel/complaintsPro.dart';
 import 'complaintHistoryScreen.dart';
 
@@ -68,7 +69,11 @@ class _NewComplaintState extends State<NewComplaint> {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      appBar: CustomAppBar(title: 'Support',isBack: false,),
+      appBar: CustomAppBar(title: 'Support',isBack: true,
+        onBackTap: () {
+          MainScreen.changeTab(context, 0);
+        },
+      ),
 
       bottomSheet: Container(
         color: Colors.white,

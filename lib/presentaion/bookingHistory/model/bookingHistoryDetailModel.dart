@@ -43,6 +43,7 @@ class BookingHistoryDetailData {
   Hourly? hourly;
   RoundTrip? roundTrip;
   DriverResponse? driverResponse;
+  DriverCurrentLocation? driverCurrentLocation;
 
   String? id;
   String? bookingNumber;
@@ -55,10 +56,10 @@ class BookingHistoryDetailData {
   String? tripStatus;
   String? overallStatus;
 
-  double? estimatedKm;
-  int? estimatedMins;
-  double? estimatedFare;
-  double? prepaidAmount;
+  num? estimatedKm;
+  num? estimatedMins;
+  num? estimatedFare;
+  num? prepaidAmount;
 
   String? scheduledAt;
   bool? isScheduled;
@@ -81,12 +82,13 @@ class BookingHistoryDetailData {
   String? createdAtIST;
   String? scheduledAtIST;
   String? paymentAtIST;
+  String? dropoffAtIST;
   String? assignedAtIST;
   String? tripStartAtIST;
   String? tripEndAtIST;
   String? cancelledAtIST;
 
-  int? v;
+  var v;
 
   BookingHistoryDetailData({
     this.pickup,
@@ -100,6 +102,7 @@ class BookingHistoryDetailData {
     this.hourly,
     this.roundTrip,
     this.driverResponse,
+    this.driverCurrentLocation,
     this.id,
     this.bookingNumber,
     this.user,
@@ -133,6 +136,7 @@ class BookingHistoryDetailData {
     this.paymentAtIST,
     this.assignedAtIST,
     this.tripStartAtIST,
+    this.dropoffAtIST,
     this.tripEndAtIST,
     this.cancelledAtIST,
     this.v,
@@ -151,6 +155,7 @@ class BookingHistoryDetailData {
       hourly: json['hourly'] != null ? Hourly.fromJson(json['hourly']) : null,
       roundTrip: json['roundTrip'] != null ? RoundTrip.fromJson(json['roundTrip']) : null,
       driverResponse: json['driverResponse'] != null ? DriverResponse.fromJson(json['driverResponse']) : null,
+      driverCurrentLocation: json['driverCurrentLocation'] != null ? DriverCurrentLocation.fromJson(json['driverCurrentLocation']) : null,
 
       id: json['_id'] as String?,
       bookingNumber: json['bookingNumber'] as String?,
@@ -163,14 +168,15 @@ class BookingHistoryDetailData {
       tripStatus: json['tripStatus'] as String?,
       overallStatus: json['overallStatus'] as String?,
 
-      estimatedKm: (json['estimatedKm'] as num?)?.toDouble(),
-      estimatedMins: json['estimatedMins'] as int?,
-      estimatedFare: (json['estimatedFare'] as num?)?.toDouble(),
-      prepaidAmount: (json['prepaidAmount'] as num?)?.toDouble(),
+      estimatedKm: JsonHelper.doubleValue(json['estimatedKm']),
+      estimatedMins: JsonHelper.intValue(json['estimatedMins']),
+      estimatedFare: JsonHelper.doubleValue(json['estimatedFare']),
+      prepaidAmount: JsonHelper.doubleValue(json['prepaidAmount']),
 
       scheduledAt: json['scheduledAt'] as String?,
       isScheduled: json['isScheduled'] as bool?,
       paymentAt: json['paymentAt'] as String?,
+      dropoffAtIST: json['dropoffAtIST'] as String?,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
       assignedAt: json['assignedAt'] as String?,
@@ -211,6 +217,7 @@ class BookingHistoryDetailData {
     if (hourly != null) data['hourly'] = hourly!.toJson();
     if (roundTrip != null) data['roundTrip'] = roundTrip!.toJson();
     if (driverResponse != null) data['driverResponse'] = driverResponse!.toJson();
+    if (driverCurrentLocation != null) data['driverCurrentLocation'] = driverCurrentLocation!.toJson();
 
     data['_id'] = id;
     data['bookingNumber'] = bookingNumber;
@@ -246,6 +253,7 @@ class BookingHistoryDetailData {
     if (assignedBy != null) data['assignedBy'] = assignedBy!.toJson();
 
     data['createdAtIST'] = createdAtIST;
+    data['dropoffAtIST'] = dropoffAtIST;
     data['scheduledAtIST'] = scheduledAtIST;
     data['paymentAtIST'] = paymentAtIST;
     data['assignedAtIST'] = assignedAtIST;
@@ -263,7 +271,7 @@ class BookingHistoryDetailData {
 class Driver {
   String? id;
   String? phone;
-  int? rating;
+  var rating;
   String? name;
   String? profilePic;
 
@@ -273,7 +281,7 @@ class Driver {
     return Driver(
       id: json['_id'] as String?,
       phone: json['phone'] as String?,
-      rating: json['rating'] as int?,
+      rating: JsonHelper.numValue(json['rating']),
       name: json['name'] as String?,
       profilePic: json['profilePic'] as String?,
     );
@@ -369,186 +377,35 @@ class DriverResponse {
     data['cancelRequestId'] = cancelRequestId;
     return data;
   }
+}class
+
+DriverCurrentLocation {
+  var lat;
+  var lng;
+  String? updatedAt;
+
+  DriverCurrentLocation({this.lat, this.lng, this.updatedAt});
+
+  factory DriverCurrentLocation.fromJson(Map<String, dynamic> json) {
+    return DriverCurrentLocation(
+      lat: JsonHelper.doubleValue(json['lat']),
+      lng: JsonHelper.doubleValue(json['lng']),
+      updatedAt: json['updatedAt'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['lng'] = lng;
+    data['updatedAt'] = updatedAt;
+    return data;
+  }
 }
-// class BookingHistoryDetailModel {
-//   bool? status;
-//   String? message;
-//   BookingHistoryDetailData? data;
-//
-//   BookingHistoryDetailModel({
-//     this.status,
-//     this.message,
-//     this.data,
-//   });
-//
-//   factory BookingHistoryDetailModel.fromJson(Map<String, dynamic> json) {
-//     return BookingHistoryDetailModel(
-//       status: json['status'] as bool?,
-//       message: json['message'] as String?,
-//       data: json['data'] != null ? BookingHistoryDetailData.fromJson(json['data']) : null,
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = <String, dynamic>{};
-//     data['status'] = status;
-//     data['message'] = message;
-//     if (this.data != null) {
-//       data['data'] = this.data!.toJson();
-//     }
-//     return data;
-//   }
-// }
-//
-// class BookingHistoryDetailData {
-//   Pickup? pickup;
-//   Pickup? dropoff;
-//   PricingSnapshot? pricingSnapshot;
-//   Payment? payment;
-//   ExtraCharge? extraCharge;
-//   FareBreakup? fareBreakup;
-//   Actual? actual;
-//   Intercity? intercity;
-//   Hourly? hourly;
-//   RoundTrip? roundTrip;
-//
-//   String? id;
-//   String? bookingNumber;
-//   String? user;
-//   Segment? segment;
-//   Region? region;
-//   String? bookingType;
-//   String? paymentStatus;
-//   String? assignmentStatus;
-//   String? tripStatus;
-//   String? overallStatus;
-//
-//   double? estimatedKm;
-//   int? estimatedMins;
-//   double? estimatedFare;
-//   double? prepaidAmount;
-//
-//   String? scheduledAt;
-//   String? paymentAt;
-//   String? createdAt;
-//   String? updatedAt;
-//
-//   int? v;
-//
-//   BookingHistoryDetailData({
-//     this.pickup,
-//     this.dropoff,
-//     this.pricingSnapshot,
-//     this.payment,
-//     this.extraCharge,
-//     this.fareBreakup,
-//     this.actual,
-//     this.intercity,
-//     this.hourly,
-//     this.roundTrip,
-//     this.id,
-//     this.bookingNumber,
-//     this.user,
-//     this.segment,
-//     this.region,
-//     this.bookingType,
-//     this.paymentStatus,
-//     this.assignmentStatus,
-//     this.tripStatus,
-//     this.overallStatus,
-//     this.estimatedKm,
-//     this.estimatedMins,
-//     this.estimatedFare,
-//     this.prepaidAmount,
-//     this.scheduledAt,
-//     this.paymentAt,
-//     this.createdAt,
-//     this.updatedAt,
-//     this.v,
-//   });
-//
-//   factory BookingHistoryDetailData.fromJson(Map<String, dynamic> json) {
-//     return BookingHistoryDetailData(
-//       pickup: json['pickup'] != null ? Pickup.fromJson(json['pickup']) : null,
-//       dropoff: json['dropoff'] != null ? Pickup.fromJson(json['dropoff']) : null,
-//       pricingSnapshot: json['pricingSnapshot'] != null
-//           ? PricingSnapshot.fromJson(json['pricingSnapshot'])
-//           : null,
-//       payment: json['payment'] != null ? Payment.fromJson(json['payment']) : null,
-//       extraCharge: json['extraCharge'] != null
-//           ? ExtraCharge.fromJson(json['extraCharge'])
-//           : null,
-//       fareBreakup: json['fareBreakup'] != null
-//           ? FareBreakup.fromJson(json['fareBreakup'])
-//           : null,
-//       actual: json['actual'] != null ? Actual.fromJson(json['actual']) : null,
-//       intercity: json['intercity'] != null
-//           ? Intercity.fromJson(json['intercity'])
-//           : null,
-//       hourly: json['hourly'] != null ? Hourly.fromJson(json['hourly']) : null,
-//       roundTrip: json['roundTrip'] != null
-//           ? RoundTrip.fromJson(json['roundTrip'])
-//           : null,
-//       id: json['_id'] as String?,
-//       bookingNumber: json['bookingNumber'] as String?,
-//       user: json['user'] as String?,
-//       segment: json['segment'] != null ? Segment.fromJson(json['segment']) : null,
-//       region: json['region'] != null ? Region.fromJson(json['region']) : null,
-//       bookingType: json['bookingType'] as String?,
-//       paymentStatus: json['paymentStatus'] as String?,
-//       assignmentStatus: json['assignmentStatus'] as String?,
-//       tripStatus: json['tripStatus'] as String?,
-//       overallStatus: json['overallStatus'] as String?,
-//       estimatedKm: (json['estimatedKm'] as num?)?.toDouble(),
-//       estimatedMins: json['estimatedMins'] as int?,
-//       estimatedFare: (json['estimatedFare'] as num?)?.toDouble(),
-//       prepaidAmount: (json['prepaidAmount'] as num?)?.toDouble(),
-//       scheduledAt: json['scheduledAt'] as String?,
-//       paymentAt: json['paymentAt'] as String?,
-//       createdAt: json['createdAt'] as String?,
-//       updatedAt: json['updatedAt'] as String?,
-//       v: json['__v'] as int?,
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = <String, dynamic>{};
-//     if (pickup != null) data['pickup'] = pickup!.toJson();
-//     if (dropoff != null) data['dropoff'] = dropoff!.toJson();
-//     if (pricingSnapshot != null) data['pricingSnapshot'] = pricingSnapshot!.toJson();
-//     if (payment != null) data['payment'] = payment!.toJson();
-//     if (extraCharge != null) data['extraCharge'] = extraCharge!.toJson();
-//     if (fareBreakup != null) data['fareBreakup'] = fareBreakup!.toJson();
-//     if (actual != null) data['actual'] = actual!.toJson();
-//     if (intercity != null) data['intercity'] = intercity!.toJson();
-//     if (hourly != null) data['hourly'] = hourly!.toJson();
-//     if (roundTrip != null) data['roundTrip'] = roundTrip!.toJson();
-//     data['_id'] = id;
-//     data['bookingNumber'] = bookingNumber;
-//     data['user'] = user;
-//     if (segment != null) data['segment'] = segment!.toJson();
-//     if (region != null) data['region'] = region!.toJson();
-//     data['bookingType'] = bookingType;
-//     data['paymentStatus'] = paymentStatus;
-//     data['assignmentStatus'] = assignmentStatus;
-//     data['tripStatus'] = tripStatus;
-//     data['overallStatus'] = overallStatus;
-//     data['estimatedKm'] = estimatedKm;
-//     data['estimatedMins'] = estimatedMins;
-//     data['estimatedFare'] = estimatedFare;
-//     data['prepaidAmount'] = prepaidAmount;
-//     data['scheduledAt'] = scheduledAt;
-//     data['paymentAt'] = paymentAt;
-//     data['createdAt'] = createdAt;
-//     data['updatedAt'] = updatedAt;
-//     data['__v'] = v;
-//     return data;
-//   }
-// }
 
 class Pickup {
-  double? lat;
-  double? lng;
+  var lat;
+  var lng;
   String? address;
 
   Pickup({this.lat, this.lng, this.address});
@@ -572,15 +429,15 @@ class Pickup {
 
 class PricingSnapshot {
   DriverFare? driverFare;
-  double? baseFare;
-  double? perKmRate;
-  double? perMinRate;
-  double? minFare;
-  double? surgeMultiplier;
+  var baseFare;
+  var perKmRate;
+  var perMinRate;
+  var minFare;
+  var surgeMultiplier;
   String? surgeLabel;
   String? timeType;
-  double? cancellationFee;
-  double? gstPercent;
+  var cancellationFee;
+  var gstPercent;
 
   PricingSnapshot({
     this.driverFare,
@@ -668,7 +525,7 @@ class Payment {
   ExtraPayment? extraPayment;
   String? method;
   String? gatewayRef;
-  double? paidAmount;
+  var paidAmount;
   String? paidAt;
   String? status;
 
@@ -707,7 +564,7 @@ class Payment {
 }
 
 class ExtraPayment {
-  double? amount;
+  var amount;
   String? status;
   String? method;
   String? gatewayRef;
@@ -743,7 +600,7 @@ class ExtraPayment {
 }
 
 class ExtraCharge {
-  double? amount;
+  var amount;
   String? reason;
   bool? isPaid;
   String? paidAt;
@@ -793,17 +650,18 @@ class FareBreakup {
 }
 
 class Estimated {
-  double? baseFare;
-  double? distanceCharge;
-  double? timeCharge;
-  double? surgeCharge;
-  double? subtotal;
-  double? gstAmount;
-  double? tollCharge;
-  double? totalFare;
-  double? airportFare;
-  double? nightFare;
-  double? surchargeAmount;
+  var baseFare;
+  var distanceCharge;
+  var timeCharge;
+  var surgeCharge;
+  var mcdTollCharge;
+  var subtotal;
+  var gstAmount;
+  var tollCharge;
+  var totalFare;
+  var airportFare;
+  var nightFare;
+  var surchargeAmount;
 
   Estimated({
     this.baseFare,
@@ -813,6 +671,7 @@ class Estimated {
     this.subtotal,
     this.gstAmount,
     this.tollCharge,
+    this.mcdTollCharge,
     this.totalFare,
     this.airportFare,
     this.nightFare,
@@ -825,6 +684,7 @@ class Estimated {
       distanceCharge: (json['distanceCharge'] as num?)?.toDouble(),
       timeCharge: (json['timeCharge'] as num?)?.toDouble(),
       surgeCharge: (json['surgeCharge'] as num?)?.toDouble(),
+      mcdTollCharge: (json['mcdTollCharge'] as num?)?.toDouble(),
       subtotal: (json['subtotal'] as num?)?.toDouble(),
       gstAmount: (json['gstAmount'] as num?)?.toDouble(),
       tollCharge: (json['tollCharge'] as num?)?.toDouble(),
@@ -841,6 +701,7 @@ class Estimated {
     data['distanceCharge'] = distanceCharge;
     data['timeCharge'] = timeCharge;
     data['surgeCharge'] = surgeCharge;
+    data['mcdTollCharge'] = mcdTollCharge;
     data['subtotal'] = subtotal;
     data['gstAmount'] = gstAmount;
     data['tollCharge'] = tollCharge;
@@ -853,18 +714,18 @@ class Estimated {
 }
 
 class FinalFare {
-  double? baseFare;
-  double? distanceCharge;
-  double? timeCharge;
-  double? surgeCharge;
-  double? subtotal;
-  double? gstAmount;
-  double? tollCharge;
-  double? extraKmCharge;
-  double? extraTimeCharge;
-  double? discountAmount;
-  double? walletUsed;
-  double? totalFare;
+  var baseFare;
+  var distanceCharge;
+  var timeCharge;
+  var surgeCharge;
+  var subtotal;
+  var gstAmount;
+  var tollCharge;
+  var extraKmCharge;
+  var extraTimeCharge;
+  var discountAmount;
+  var walletUsed;
+  var totalFare;
 
   FinalFare({
     this.baseFare,
@@ -918,9 +779,9 @@ class FinalFare {
 
 class Actual {
   String? polyline;
-  double? distanceKm;
-  double? durationMins;
-  double? tollAmount;
+  var distanceKm;
+  var durationMins;
+  var tollAmount;
 
   Actual({this.polyline, this.distanceKm, this.durationMins, this.tollAmount});
 
@@ -944,8 +805,8 @@ class Actual {
 }
 
 class Intercity {
-  int? tripDays;
-  double? tollAmount;
+  var tripDays;
+  num? tollAmount;
   dynamic driverPayout;
   dynamic driverAllowanceTotal;
 
@@ -959,7 +820,7 @@ class Intercity {
   factory Intercity.fromJson(Map<String, dynamic> json) {
     return Intercity(
       tripDays: json['tripDays'] as int?,
-      tollAmount: (json['tollAmount'] as num?)?.toDouble(),
+      tollAmount:JsonHelper.numValue(json['tollAmount']),
       driverPayout: json['driverPayout'],
       driverAllowanceTotal: json['driverAllowanceTotal'],
     );
@@ -976,17 +837,17 @@ class Intercity {
 }
 
 class Hourly {
-  int? extraHours;
-  int? extraKms;
-  double? extraCharges;
+  var extraHours;
+  var extraKms;
+  num? extraCharges;
 
   Hourly({this.extraHours, this.extraKms, this.extraCharges});
 
   factory Hourly.fromJson(Map<String, dynamic> json) {
     return Hourly(
-      extraHours: json['extraHours'] as int?,
-      extraKms: json['extraKms'] as int?,
-      extraCharges: (json['extraCharges'] as num?)?.toDouble(),
+      extraHours:JsonHelper.intValue(json['extraHours']),
+      extraKms: JsonHelper.intValue(json['extraKms']),
+      extraCharges:JsonHelper.numValue(json['extraCharges']),
     );
   }
 
@@ -1023,7 +884,7 @@ class RoundTrip {
 class Segment {
   String? id;
   String? name;
-  int? maxCapacity;
+  var maxCapacity;
 
   Segment({this.id, this.name, this.maxCapacity});
 
@@ -1031,7 +892,7 @@ class Segment {
     return Segment(
       id: json['_id'] as String?,
       name: json['name'] as String?,
-      maxCapacity: json['maxCapacity'] as int?,
+      maxCapacity: JsonHelper.intValue(json['maxCapacity']),
     );
   }
 
@@ -1065,5 +926,24 @@ class Region {
     data['name'] = name;
     data['state'] = state;
     return data;
+  }
+}
+
+
+class JsonHelper {
+  static num? numValue(dynamic value) {
+    if (value == null) return null;
+
+    if (value is num) return value;
+
+    return num.tryParse(value.toString());
+  }
+
+  static double? doubleValue(dynamic value) {
+    return numValue(value)?.toDouble();
+  }
+
+  static int? intValue(dynamic value) {
+    return numValue(value)?.toInt();
   }
 }

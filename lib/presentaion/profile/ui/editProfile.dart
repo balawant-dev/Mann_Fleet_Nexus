@@ -8,13 +8,15 @@ import 'package:provider/provider.dart';
 import '../../../util/color/app_colors.dart';
 import '../../../util/image_resource/image_resource.dart';
 import '../../../widget/custom_appBar.dart';
+import '../../../widget/custom_button.dart';
 import '../../../widget/custom_input.dart';
 import '../../../widget/custom_text.dart';
 import '../../../widget/customImageView.dart';
+import '../../../widget/motionToastHelper.dart';
+import '../../../widget/showLoaderFunction.dart';
 import '../model/getProfileModel.dart';
 import '../repo/profileRepo.dart';
 import '../viewModel/profileViewModel.dart';
-
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -49,7 +51,10 @@ class _EditProfileState extends State<EditProfile> {
 
     // Load profile data when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<ProfileDetailViewModel>(context, listen: false);
+      final provider = Provider.of<ProfileDetailViewModel>(
+        context,
+        listen: false,
+      );
       provider.getProfileApi(context: context).then((_) {
         _fillInitialData(provider.getProfileModel);
       });
@@ -63,10 +68,10 @@ class _EditProfileState extends State<EditProfile> {
 
     nameController.text = user.name ?? '';
     emailController.text = user.email ?? '';
-    cityController.text = ''; // API doesn't have city → leave empty or fetch from elsewhere
+    cityController.text = user.city ?? '';
     mobileController.text = user.mobile ?? '';
-    selectedGender = user.gender; // male / female / other
-    dobController.text = _formatDateForDisplay(user.dob); // assuming you add dob in model
+    selectedGender = user.gender;
+    dobController.text = _formatDateForDisplay(user.dob);
 
     setState(() {});
   }
@@ -119,30 +124,42 @@ class _EditProfileState extends State<EditProfile> {
       ),
     );
   }
+
   Future<void> _selectDate(BuildContext context) async {
+    final now = DateTime.now();
+
+    final maxDate = DateTime(now.year - 14, now.month, now.day);
+
+    final initialDate = DateTime(now.year - 18, now.month, now.day);
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+      initialDate: initialDate,
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+
+      lastDate: maxDate,
     );
 
     if (picked != null) {
-      // UI format
       dobController.text = DateFormat('dd/MM/yyyy').format(picked);
 
-      // API format
       dobApi = DateFormat('yyyy-MM-dd').format(picked);
     }
   }
 
   Future<void> _updateProfile(ProfileDetailViewModel provider) async {
     if (nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your name")),
+      ToastHelper.show(
+        context,
+        message: "Please enter your name",
+        type: ToastType.warning,
       );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("Please enter your name")),
+      // );
       return;
     }
+    showLoader(context);
 
     setState(() => isLoading = true);
 
@@ -152,16 +169,21 @@ class _EditProfileState extends State<EditProfile> {
       email: emailController.text.trim(),
       city: cityController.text.trim(),
       gender: selectedGender ?? '',
-      dob: dobApi,//yyyy-mm-dd
+      dob: dobApi,
       profilePic: selectedImage?.path ?? '',
     );
-
+    Navigator.pop(context);
     setState(() => isLoading = false);
 
     if (provider.getProfileModel?.status == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated successfully")),
+      ToastHelper.show(
+        context,
+        message: "Profile updated successfully",
+        type: ToastType.success,
       );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("Profile updated successfully")),
+      // );
       Navigator.pop(context); // optional: go back after success
     }
   }
@@ -175,200 +197,262 @@ class _EditProfileState extends State<EditProfile> {
           body: provider.isLoading && provider.getProfileModel == null
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Photo
-                Center(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Stack(
-                        children: [
-                          Container(
-                            height: 128,
-                            width: 128,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(width: 3, color: Colors.white),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(width: 4, color:  Color(0xFF906B45)),
-                              ),
-                              child: ClipOval(
-                                child: selectedImage != null
-                                    ? Image.file(selectedImage!, fit: BoxFit.cover)
-                                    : (provider.getProfileModel?.data?.user?.profilePic != null &&
-                                    provider.getProfileModel!.data!.user!.profilePic!.isNotEmpty)
-                                    ? CustomImageView(
-                                  imagePath: provider.getProfileModel!.data!.user!.profilePic!,
-                                  fit: BoxFit.cover,
-                                  imageType:ImageType.network,
-                                )
-                                    : Image.asset("assets/images/person.png", fit: BoxFit.cover),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                              bottom: 10,
-                              right: 2,
-                              child: GestureDetector(
-                                onTap: _showImagePicker,
-                                child: Container(
+                      // Profile Photo
+                      Center(
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                Container(
+                                  height: 128,
+                                  width: 128,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    border: Border.all(width: 3, color: Color(0xFF906B45)),
+                                    border: Border.all(
+                                      width: 3,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                   child: Container(
-                                      height: 30,
-                                      width: 30,
-                                      padding: EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(999),
-                                        color: ColorResource.white,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        width: 4,
+                                        color: Color(0xFF906B45),
                                       ),
-
-                                      child: Icon(Icons.edit)),
+                                    ),
+                                    child: ClipOval(
+                                      child: selectedImage != null
+                                          ? Image.file(
+                                              selectedImage!,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : (provider
+                                                        .getProfileModel
+                                                        ?.data
+                                                        ?.user
+                                                        ?.profilePic !=
+                                                    null &&
+                                                provider
+                                                    .getProfileModel!
+                                                    .data!
+                                                    .user!
+                                                    .profilePic!
+                                                    .isNotEmpty)
+                                          ? CustomImageView(
+                                              imagePath: provider
+                                                  .getProfileModel!
+                                                  .data!
+                                                  .user!
+                                                  .profilePic!,
+                                              fit: BoxFit.cover,
+                                              imageType: ImageType.network,
+                                            )
+                                          : Image.asset(
+                                              "assets/images/person.png",
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                  ),
                                 ),
-                              ))
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: _showImagePicker,
-                        child: CustomText(
-                          'Change Photo',
-                          size: 14,
-                          weight: FontWeight.w600,
-                          color: ColorResource.primary,
+                                Positioned(
+                                  bottom: 10,
+                                  right: 2,
+                                  child: GestureDetector(
+                                    onTap: _showImagePicker,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          width: 3,
+                                          color: Color(0xFF906B45),
+                                        ),
+                                      ),
+                                      child: Container(
+                                        height: 30,
+                                        width: 30,
+                                        padding: EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          color: ColorResource.white,
+                                        ),
+
+                                        child: Icon(Icons.edit),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            GestureDetector(
+                              onTap: _showImagePicker,
+                              child: CustomText(
+                                'Change Photo',
+                                size: 14,
+                                weight: FontWeight.w600,
+                                color: ColorResource.primary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      const SizedBox(height: 32),
+
+                      // Full Name
+                      CustomText(
+                        'Full Name',
+                        size: 13,
+                        weight: FontWeight.w700,
+                      ),
+                      const SizedBox(height: 6),
+                      CustomInputBox(
+                        controller: nameController,
+                        hintText: 'Enter Full Name',
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Email
+                      CustomText(
+                        'Email Address',
+                        size: 13,
+                        weight: FontWeight.w700,
+                      ),
+                      const SizedBox(height: 6),
+                      CustomInputBox(
+                        controller: emailController,
+                        hintText: 'Enter Email',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Mobile (read-only or editable?)
+                   CustomText(
+                          'Mobile Number',
+                          size: 13,
+                          weight: FontWeight.w700,
+                        ),
+
+                      const SizedBox(height: 6),
+                      IgnorePointer(
+                        child: CustomInputBox(
+                          controller: mobileController,
+                          hintText: 'Mobile Number',
+                          keyboardType: TextInputType.phone,
+                          maxLength: 10,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // City
+                      CustomText('City', size: 13, weight: FontWeight.w700),
+                      const SizedBox(height: 6),
+                      CustomInputBox(
+                        controller: cityController,
+                        hintText: 'Enter City',
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Date of Birth
+                      CustomText(
+                        'Date of Birth',
+                        size: 13,
+                        weight: FontWeight.w700,
+                      ),
+                      const SizedBox(height: 6),
+                      CustomInputBox(
+                        controller: dobController,
+                        hintText: 'DD/MM/YYYY',
+                        type: InputType.date,
+                        onTap: () {
+                          _selectDate(context);
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Gender Chips
+                      CustomText('Gender', size: 13, weight: FontWeight.w700),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: ['Male', 'Female', 'Other'].map((gender) {
+                          final isSelected =
+                              selectedGender == gender.toLowerCase();
+                          return ChoiceChip(
+                            label: Text(gender),
+                            selected: isSelected,
+                            selectedColor: ColorResource.primary.withOpacity(
+                              0.2,
+                            ),
+                            backgroundColor: Colors.grey.shade200,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? ColorResource.primary
+                                    : Colors.transparent,
+                                width: 1.5,
+                              ),
+                            ),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  selectedGender = gender.toLowerCase();
+                                });
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 40),
+                      CustomButton(
+                        title: 'Update Profile',
+
+                        onTap: isLoading
+                            ? null
+                            : () => _updateProfile(provider),
+                      ),
+
+                      // Update Button
+                      // SizedBox(
+                      //   width: double.infinity,
+                      //   height: 52,
+                      //   child: ElevatedButton(
+                      //     onPressed: isLoading ? null : () => _updateProfile(provider),
+                      //     style: ElevatedButton.styleFrom(
+                      //       backgroundColor: ColorResource.primary,
+                      //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      //     ),
+                      //     child: isLoading
+                      //         ? const SizedBox(
+                      //       height: 24,
+                      //       width: 24,
+                      //       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      //     )
+                      //         : const Text(
+                      //       'Update Profile',
+                      //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      //     ),
+                      //   ),
+                      // ),
+                      const SizedBox(height: 50),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 32),
-
-                // Full Name
-                CustomText('Full Name', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 6),
-                CustomInputBox(
-                  controller: nameController,
-                  hintText: 'Enter Full Name',
-                ),
-
-                const SizedBox(height: 16),
-
-                // Email
-                CustomText('Email Address', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 6),
-                CustomInputBox(
-                  controller: emailController,
-                  hintText: 'Enter Email',
-                  keyboardType: TextInputType.emailAddress,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Mobile (read-only or editable?)
-                CustomText('Mobile Number', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 6),
-                CustomInputBox(
-                  controller: mobileController,
-                  hintText: 'Mobile Number',
-                  keyboardType: TextInputType.phone,
-                  maxLength: 10,
-
-                ),
-
-                const SizedBox(height: 16),
-
-                // City
-                CustomText('City', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 6),
-                CustomInputBox(
-                  controller: cityController,
-                  hintText: 'Enter City',
-                ),
-
-                const SizedBox(height: 16),
-
-                // Date of Birth
-                CustomText('Date of Birth', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 6),
-                CustomInputBox(
-                  controller: dobController,
-                  hintText: 'DD/MM/YYYY',
-                  type: InputType.date,
-                  onTap: () {
-                    _selectDate(context);
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Gender Chips
-                CustomText('Gender', size: 13, weight: FontWeight.w700),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: ['Male', 'Female', 'Other'].map((gender) {
-                    final isSelected = selectedGender == gender.toLowerCase();
-                    return ChoiceChip(
-                      label: Text(gender),
-                      selected: isSelected,
-                      selectedColor: ColorResource.primary.withOpacity(0.2),
-                      backgroundColor: Colors.grey.shade200,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        side: BorderSide(
-                          color: isSelected ? ColorResource.primary : Colors.transparent,
-                          width: 1.5,
-                        ),
-                      ),
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            selectedGender = gender.toLowerCase();
-                          });
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Update Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : () => _updateProfile(provider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorResource.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: isLoading
-                        ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                    )
-                        : const Text(
-                      'Update Profile',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-              ],
-            ),
-          ),
         );
       },
     );

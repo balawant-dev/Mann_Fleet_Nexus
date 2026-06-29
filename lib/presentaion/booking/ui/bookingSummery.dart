@@ -5,7 +5,6 @@ import 'package:mannfleet/widget/custom_button.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
-
 import '../../../apiservice/payment/paymentService.dart';
 import '../../../apiservice/services/appConfigService.dart';
 import '../../../util/FontResource/FontResource.dart';
@@ -21,10 +20,10 @@ import '../../profile/model/getProfileModel.dart';
 import '../../profile/viewModel/profileViewModel.dart';
 import '../provider/bookingSummaryProvider.dart';
 
-
 class BookingSummary extends StatefulWidget {
   final String segmentName;
   final String vehicleName;
+  final String mcdTollCharge;
   final String bookingType;
   final String away;
   final String pickUpLocation;
@@ -40,6 +39,8 @@ class BookingSummary extends StatefulWidget {
   final String gstAmount;
   final String tollCharge;
   final String totalFare;
+  final String finalPayableAmount;
+  final String walletDiscount;
   final String minFareApplied;
   final String cancellationFee;
   final String surchargeAmount;
@@ -74,10 +75,14 @@ class BookingSummary extends StatefulWidget {
   final String toCity;
   final String airportFare;
   final bool isPickupAirport;
-  final   bool isDropAirport;
+  final bool isDropAirport;
   final bool isAirportTrip;
   final bool isGrayMatter;
-
+  //New sectionaad
+  final String? effectiveDistanceKm;
+  final String? effectiveTotalMins;
+  final String? idleMinsBetweenLegs;
+  final String? returnTravelMins;
 
   const BookingSummary({
     super.key,
@@ -88,10 +93,12 @@ class BookingSummary extends StatefulWidget {
     required this.baseFare,
     required this.bookingType,
     required this.cancellationFee,
+    required this.walletDiscount,
     required this.distanceCharge,
     required this.dropLocation,
     required this.gstAmount,
     required this.nightFare,
+    required this.finalPayableAmount,
     required this.gstPercent,
     required this.minFareApplied,
     required this.pickUpLocation,
@@ -107,19 +114,15 @@ class BookingSummary extends StatefulWidget {
     required this.regionId,
     required this.segmentId,
     required this.estimatedDistance,
+    required this.mcdTollCharge,
     required this.estimatedTime,
-    required this.estimatedTimeContent,required this.isAirportTrip,
+    required this.estimatedTimeContent,
+    required this.isAirportTrip,
     required this.isDropAirport,
     required this.isGrayMatter,
     required this.isPickupAirport,
 
-
-
-
-
     //////////////////
-
-
     required this.pickupLat,
     required this.pickupLng,
     required this.dropLat,
@@ -143,8 +146,10 @@ class BookingSummary extends StatefulWidget {
     required this.tripDays,
     required this.toCity,
 
-
-
+    this.effectiveDistanceKm,
+    this.effectiveTotalMins,
+    this.idleMinsBetweenLegs,
+    this.returnTravelMins,
   });
 
   @override
@@ -158,6 +163,7 @@ class _BookingSummaryState extends State<BookingSummary> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   late RazorpayService razorpayService;
+  String travellerType = "self";
   @override
   void initState() {
     super.initState();
@@ -165,12 +171,17 @@ class _BookingSummaryState extends State<BookingSummary> {
     travellerName = TextEditingController();
     travellerPhone = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<ProfileDetailViewModel>(context, listen: false);
+      final provider = Provider.of<ProfileDetailViewModel>(
+        context,
+        listen: false,
+      );
       provider.getProfileApi(context: context).then((_) {
         _fillInitialData(provider.getProfileModel);
         if (travellerPhone.text.length == 10) {
-          Provider.of<BookingSummaryProvider>(context, listen: false)
-              .checkVerification(travellerPhone.text, context);
+          Provider.of<BookingSummaryProvider>(
+            context,
+            listen: false,
+          ).checkVerification(travellerPhone.text, context);
         }
       });
     });
@@ -182,7 +193,6 @@ class _BookingSummaryState extends State<BookingSummary> {
 
       // 👉 Payment success ke baad API call
       await callBookingApi();
-
     };
 
     razorpayService.onError = (response) {
@@ -204,7 +214,6 @@ class _BookingSummaryState extends State<BookingSummary> {
 
     travellerPhone.text = user.mobile ?? '';
 
-
     setState(() {});
   }
 
@@ -213,10 +222,14 @@ class _BookingSummaryState extends State<BookingSummary> {
     razorpayService.dispose();
     super.dispose();
   }
+
   Future<void> callBookingApi() async {
     final pro = Provider.of<BookingSummaryProvider>(context, listen: false);
     showBookingBottomSheet(context);
 
+    print(
+      "this mann==================+++++++++++++++++effectiveDistanceKm${widget.effectiveDistanceKm}  and effectiveDistanceKm ${widget.effectiveDistanceKm} and idleMinsBetweenLegs ${widget.idleMinsBetweenLegs}  and returnTravelMins ${widget.returnTravelMins}",
+    );
 
     // showLoader(context);
 
@@ -252,7 +265,8 @@ class _BookingSummaryState extends State<BookingSummary> {
       estimatedKm: widget.estimatedKm,
       estimatedMins: widget.estimatedMins,
       timeCharge: widget.timeCharge,
-      totalFare: widget.totalFare,
+      // totalFare: widget.totalFare,
+      totalFare: widget.finalPayableAmount,
       timeType: widget.timeType,
       surgeCharge: widget.surgeCharge,
       subtotal: widget.subtotal,
@@ -261,23 +275,28 @@ class _BookingSummaryState extends State<BookingSummary> {
       gstAmount: widget.gstAmount,
       gstPercent: widget.gstPercent,
       tollCharge: widget.tollCharge,
-      scheduledDate:  widget.scheduledDate,
-      scheduledTime:  widget.scheduledTime,
-      returnDate:  widget.returnDate,
+      scheduledDate: widget.scheduledDate,
+      scheduledTime: widget.scheduledTime,
+      returnDate: widget.returnDate,
       // scheduledTime:  "23:00",
-      bookedKms:  widget.bookedKms,
+      bookedKms: widget.bookedKms,
       returnTime: widget.returnTime,
       selectedHours: widget.selectedHours,
       tripDays: widget.tripDays,
       toCity: widget.toCity,
-
+      //New Added
+      effectiveDistanceKm: widget.effectiveDistanceKm,
+      effectiveTotalMins: widget.effectiveTotalMins,
+      idleMinsBetweenLegs: widget.idleMinsBetweenLegs,
+      returnTravelMins: widget.returnTravelMins,
 
       // scheduledTime:  widget.scheduledTime
-
     );
+
     /// STEP 2: Show SUCCESS animation
 
     bookingKey.currentState?.showPayment();
+
     /// ✅ IMPORTANT: wait 3 seconds
     await Future.delayed(const Duration(milliseconds: 500));
     Navigator.pop(context); // close loader
@@ -285,15 +304,43 @@ class _BookingSummaryState extends State<BookingSummary> {
     /// STEP 3: Close BottomSheet
     // Navigator.pop(context);
     final data = pro.createBookingSummeryModel?.data;
+    print("<<<<<<<<<<<<<<<<Balawant kumar>>>>>>>>>>>>>>>>>>>>>>");
+    print("<<<<<<<<<<<<<<<<Enable of payment getway flow check 1>>>>>>>>>>>>>>>>>>>>>>");
+
+    final double payableAmount =
+        double.tryParse(widget.finalPayableAmount ?? "0") ?? 0.0;
+    if (payableAmount <= 0) {
+      bookingKey.currentState?.showSuccess();
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      Navigator.pop(context); // close bottom sheet
+
+      ToastHelper.show(
+        context,
+        message: "Booking Confirmed",
+        type: ToastType.success,
+      );
+
+      navPush(
+        context: context,
+        action: MainScreen(currentIndex: 1),
+      );
+
+      return; // 🚀 Razorpay flow skip
+    }
+    print("<<<<<<<<<<<<<<<<Enable of payment getway flow check 2>>>>>>>>>>>>>>>>>>>>>>");
+    // print("<<<<<<<<<<<<<<<<<<<<<${pro.purchaseShuttlePassModel?.message}>>>>>>>>>>>>>>>>>>>>>");
     if (data?.razorpay == null) {
       ToastHelper.show(
         context,
-        message: "Payment data not found",
+        message:pro.createBookingSummeryModel?.message?? "Payment data not found",
         type: ToastType.error,
       );
       return;
     }
     final razorKey = await AppConfigService.getRazorKey();
+
     /// 🔥 Razorpay values
     String orderId = data!.razorpay!.orderId ?? "";
     int amount = data.razorpay!.amount ?? 0;
@@ -301,6 +348,7 @@ class _BookingSummaryState extends State<BookingSummary> {
     print("ORDER ID: $orderId");
     print("AMOUNT: $amount");
     print("Razor Pay Key 🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑🔑: $razorKey");
+
     /// ✅ अब Razorpay open करो
     razorpayService.openCheckoutWithOrderId(
       amount: amount,
@@ -340,6 +388,7 @@ class _BookingSummaryState extends State<BookingSummary> {
 
     // navPush(context: context, action: MainScreen(currentIndex: 1,));
   }
+
   Future<void> pickDate() async {
     DateTime? date = await showDatePicker(
       context: context,
@@ -359,6 +408,7 @@ class _BookingSummaryState extends State<BookingSummary> {
     TimeOfDay? time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      initialEntryMode: TimePickerEntryMode.input,
     );
 
     if (time != null) {
@@ -367,6 +417,7 @@ class _BookingSummaryState extends State<BookingSummary> {
       });
     }
   }
+
   void showBookingBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -377,732 +428,898 @@ class _BookingSummaryState extends State<BookingSummary> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return  BookingProcessingWidget(key: bookingKey);
+        return BookingProcessingWidget(key: bookingKey);
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     print("estimatedTime>>>>>>>>>>>>>>>>>>>>>>>>>>${widget.estimatedTime}");
-    String dateText =
-    selectedDate == null
+    String dateText = selectedDate == null
         ? "Select Date"
         : "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}";
 
-    String timeText =
-    selectedTime == null ? "Select Time" : selectedTime!.format(context);
+    String timeText = selectedTime == null
+        ? "Select Time"
+        : selectedTime!.format(context);
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: 'Booking Summary',isBack: true,),
-      body: Consumer<BookingSummaryProvider>(builder: (context, pro, child) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                bookingCard(
-                  image: widget.vehicleImage,
-                  title: widget.vehicleName,
-                  estimatedTime: widget.estimatedTimeContent,
-                  ac: 'AC',
-                  seat: "4 Seats",
-                  sugementName: widget.segmentName,
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'TRIP DETAILS',
-                  style: TextStyle(
-                    color: const Color(0xFF94A3B8),
-                    fontSize: 14,
-                    fontFamily: FontResource.plusJakartaSans,
-                    fontWeight: FontWeight.w700,
-                    height: 1.43,
-                    letterSpacing: 1.40,
+      appBar: CustomAppBar(title: 'Booking Summary', isBack: true),
+      body: Consumer<BookingSummaryProvider>(
+        builder: (context, pro, child) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  bookingCard(
+                    image: widget.vehicleImage,
+                    title: widget.vehicleName,
+                    estimatedTime: widget.bookingType == "hourly"
+                        ? "Note: Charges depend on vehicle type and selected hours."
+                        : widget.estimatedTimeContent,
+                    ac: 'AC',
+                    seat: "4 Seats",
+                    sugementName: widget.segmentName,
                   ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        width: 1,
-                        color: const Color(0xFFF1F5F9),
-                      ),
-                      borderRadius: BorderRadius.circular(16),
+                  SizedBox(height: 10),
+                  Text(
+                    'TRIP DETAILS',
+                    style: TextStyle(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 14,
+                      fontFamily: FontResource.plusJakartaSans,
+                      fontWeight: FontWeight.w700,
+                      height: 1.43,
+                      letterSpacing: 1.40,
                     ),
-                    shadows: [
-                      BoxShadow(
-                        color: Color(0x0C000000),
-                        blurRadius: 2,
-                        offset: Offset(0, 1),
-                        spreadRadius: 0,
-                      )
-                    ],
                   ),
-
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
-                                  color: Colors.purple,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              Container(
-                                width: 2,
-                                height: 60,
-                                color: Colors.grey.shade300,
-                              ),
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "PICKUP LOCATION",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                    fontFamily: FontResource.plusJakartaSans,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-
-                                SizedBox(height: 5),
-
-                                Text(
-                                  widget.pickUpLocation,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontFamily: FontResource.plusJakartaSans,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-
-                                SizedBox(height: 20),
-
-                                Text(
-                                  "DROP-OFF LOCATION",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                    fontFamily: FontResource.plusJakartaSans,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-
-                                SizedBox(height: 6),
-
-                                Text(
-                                  widget.dropLocation,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontFamily: FontResource.plusJakartaSans,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      const Divider(),
-                      const SizedBox(height: 20),
-
-                      Row(
-                        children: [
-
-                          /// 📏 Distance
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFF1F5F9)),
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: Colors.blue.withOpacity(0.1),
-                                    child: const Icon(Icons.route, size: 18, color: Colors.blue),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Distance",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "${widget.estimatedDistance}",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 10),
-
-                          /// ⏱ Time
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFF1F5F9)),
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: Colors.orange.withOpacity(0.1),
-                                    child: const Icon(Icons.access_time, size: 18, color: Colors.orange),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Estimated Time",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "${widget.estimatedTime}",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      Row(
-                        children: [
-                          /// 📅 DATE
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: pickDate,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFF1F5F9)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    /// Icon
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF03045E).withOpacity(0.08),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.calendar_month,
-                                        size: 18,
-                                        color: Color(0xFF03045E),
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 10),
-
-                                    /// Text
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          "DATE",
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          widget.date,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          /// ⏱ TIME
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: pickTime,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFF1F5F9)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    /// Icon
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.withOpacity(0.1),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.access_time,
-                                        size: 18,
-                                        color: Colors.orange,
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 10),
-
-                                    /// Text
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          "TIME",
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          widget.time,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-                // SizedBox(height: 10),
-
-                /// 👤 TRAVELER INFO TITLE
-                Text(
-                  'TRAVELER DETAILS',
-                  style: TextStyle(
-                    color: const Color(0xFF94A3B8),
-                    fontSize: 14,
-                    fontFamily: FontResource.plusJakartaSans,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-
-                SizedBox(height: 10),
-
-                /// 👤 TRAVELER CARD
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      side: const BorderSide(color: Color(0xFFF1F5F9)),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x0C000000),
-                        blurRadius: 2,
-                        offset: Offset(0, 1),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-
-                      /// NAME
-                      _inputField(
-                        controller: travellerName,
-                        hint: "Enter Full Name",
-                        icon: Icons.person,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      /// EMAIL
-                      _inputField(
-                        controller: travellerEmail,
-                        hint: "Enter Email",
-                        icon: Icons.email,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-
-                      const SizedBox(height: 12),
-
-
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child:      /// PHONE
-                            _inputField(
-                              controller: travellerPhone,
-                              hint: "Enter Mobile Number",
-                              icon: Icons.phone,
-                              keyboardType: TextInputType.phone,
-                              onChanged: (value) {
-                                if (value.length == 10) {
-                                  pro.checkVerification(value, context);
-                                }
-                              },
-
-
-                            ),
-                            // child: Container(
-                            //   decoration: BoxDecoration(
-                            //     color: Colors.grey.shade50,
-                            //     borderRadius: BorderRadius.circular(14),
-                            //     border: Border.all(color: const Color(0xFFF1F5F9)),
-                            //   ),
-                            //   child: TextFormField(
-                            //     controller: travellerPhone,
-                            //     decoration: InputDecoration(
-                            //       hintText: "Mobile Number",
-                            //       contentPadding: const EdgeInsets.symmetric(
-                            //         horizontal: 12,
-                            //         vertical: 14,
-                            //       ),
-                            //     ),
-                            //     keyboardType: TextInputType.phone,
-                            //
-                            //     onChanged: (value) {
-                            //       if (value.length == 10) {
-                            //         pro.checkVerification(value, context);
-                            //       }
-                            //     },
-                            //   ),
-                            // ),
-                          ),
-
-                          const SizedBox(width: 10),
-
-                          /// VERIFY BUTTON / STATUS
-                          pro.isVerified
-                              ? const Icon(Icons.check_circle, color: Colors.green)
-                              : ElevatedButton(
-                            onPressed: () {
-                              pro.sendOtp(
-                                  travellerPhone.text, context);
-                            },
-                            child: const Text("Verify"),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// OTP FIELD
-                      if (pro.isOtpSent)
-                        Pinput(
-                          length: 4,
-                          onCompleted: (pin) {
-                            pro.verifyOtp(
-                                travellerPhone.text, pin, context);
-                          },
+                  SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 1,
+                          color: const Color(0xFFF1F5F9),
                         ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: 10),
-                CustomText(
-                  'FARE BREAKDOWN',
-                  size: 14,
-                  weight: FontWeight.w700,
-                  color: ColorResource.textBlack,
-                ),
-                SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        width: 1,
-                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x0C000000),
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                          spreadRadius: 0,
+                        ),
+                      ],
                     ),
-                    shadows: [
-                      BoxShadow(
-                        color: Color(0x0C000000),
-                        blurRadius: 2,
-                        offset: Offset(0, 1),
-                        spreadRadius: 0,
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      /// MAIN 3 ITEMS
-                      textCard(title: 'Base Fare', price: '₹ ${widget.baseFare}'),
-                      const SizedBox(height: 10),
 
-                      textCard(
-                        title: 'Distance Charge',
-                        price: '₹ ${widget.distanceCharge}',
-                      ),
-                      const SizedBox(height: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        widget.bookingType == "hourly"
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "PICKUP LOCATION",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 10,
+                                      fontFamily: FontResource.plusJakartaSans,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
 
-                      textCard(
-                        title: 'Time Charge',
-                        price: '₹ ${widget.timeCharge}',
-                      ),
+                                  SizedBox(height: 5),
 
-                      const SizedBox(height: 10),
+                                  Text(
+                                    widget.pickUpLocation,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: FontResource.plusJakartaSans,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.purple,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 2,
+                                        height: 60,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.green,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
 
-                      /// EXPANDABLE TILE
-                      Theme(
-                        data: Theme.of(
-                          context,
-                        ).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          tilePadding: EdgeInsets.zero,
-                          childrenPadding: const EdgeInsets.only(top: 10),
+                                  const SizedBox(width: 12),
 
-                          title: CustomText(
-                            "Expense Details",
-                            size: 16,
-                            weight: FontWeight.w600,
-                          ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "PICKUP LOCATION",
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 10,
+                                            fontFamily:
+                                                FontResource.plusJakartaSans,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
 
+                                        SizedBox(height: 5),
+
+                                        Text(
+                                          widget.pickUpLocation,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontFamily:
+                                                FontResource.plusJakartaSans,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+
+                                        SizedBox(height: 20),
+
+                                        Text(
+                                          "DROP-OFF LOCATION",
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 10,
+                                            fontFamily:
+                                                FontResource.plusJakartaSans,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+
+                                        SizedBox(height: 6),
+
+                                        Text(
+                                          widget.dropLocation,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontFamily:
+                                                FontResource.plusJakartaSans,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                        const SizedBox(height: 20),
+
+                        const Divider(),
+                        const SizedBox(height: 20),
+
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : Row(
+                                children: [
+                                  /// 📏 Distance
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 18,
+                                            backgroundColor: Colors.blue
+                                                .withOpacity(0.1),
+                                            child: const Icon(
+                                              Icons.route,
+                                              size: 18,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                "Distance",
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "${widget.estimatedDistance}",
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  /// ⏱ Time
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 18,
+                                            backgroundColor: Colors.orange
+                                                .withOpacity(0.1),
+                                            child: const Icon(
+                                              Icons.access_time,
+                                              size: 18,
+                                              color: Colors.orange,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                "Estimated Time",
+
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "${widget.estimatedTime}",
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : const SizedBox(height: 20),
+
+                        Row(
                           children: [
-                            textCard(
-                              title: 'Surge Charge',
-                              price: '₹ ${widget.surgeCharge}',
+                            /// 📅 DATE
+                            Expanded(
+                              child: GestureDetector(
+                                // onTap: pickDate,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFF1F5F9),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      /// Icon
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFF03045E,
+                                          ).withOpacity(0.08),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.calendar_month,
+                                          size: 18,
+                                          color: Color(0xFF03045E),
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 8),
+
+                                      /// Text
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "DATE",
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            widget.date,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 10),
 
-                            textCard(
-                              title: 'Subtotal',
-                              price: '₹ ${widget.subtotal}',
-                            ),
-                            const SizedBox(height: 10),
+                            const SizedBox(width: 10),
 
-                            textCard(
-                              title: 'GST Percent',
-                              price: ' ${widget.gstPercent} %',
-                            ),
-                            const SizedBox(height: 10),
+                            /// ⏱ TIME
+                            Expanded(
+                              child: GestureDetector(
+                                // onTap: pickTime,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFF1F5F9),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      /// Icon
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.access_time,
+                                          size: 18,
+                                          color: Colors.orange,
+                                        ),
+                                      ),
 
-                            textCard(
-                              title: 'GST Amount',
-                              price: '₹ ${widget.gstAmount}',
-                            ),
-                            const SizedBox(height: 10),
+                                      const SizedBox(width: 8),
 
-                            textCard(
-                              title: 'Toll Charge',
-                              price: '₹ ${widget.tollCharge}',
-                            ),
-                            const SizedBox(height: 10),
-
-                            textCard(
-                              title: "Surge Charge Amount",
-                              price: '₹ ${widget.surchargeAmount}',
-                            ),
-                            const SizedBox(height: 10),
-
-                            textCard(
-                              title: 'Airport Fare',
-                              price: '₹ ${widget.airportFare}',
-                            ), const SizedBox(height: 10),
-
-                            textCard(
-                              title: 'Night Fare',
-                              price: '₹ ${widget.nightFare}',
+                                      /// Text
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "TIME",
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            widget.time,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      /// TOTAL
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                            'Total Amount',
-                            size: 16,
-                            weight: FontWeight.w700,
-                          ),
-                          CustomText(
-                            '₹ ${widget.totalFare}',
-                            size: 20,
-                            weight: FontWeight.w700,
-                            color: ColorResource.textColor,
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                  SizedBox(height: 10),
+                  // SizedBox(height: 10),
 
-                SizedBox(height: 20),
+                  /// 👤 TRAVELER INFO TITLE
+                  Text(
+                    'TRAVELER DETAILS',
+                    style: TextStyle(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 14,
+                      fontFamily: FontResource.plusJakartaSans,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
 
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        "Disclaimer: By proceeding, you agree to Mann Fleet's Terms & Conditions. "
-                            "Fare may vary based on traffic, route, or waiting time. "
-                            "Cancellation charges may apply. "
-                            "Pets are not permitted during the ride.",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                          height: 1.4,
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          value: "self",
+                          groupValue: travellerType,
+                          title: const Text("Self"),
+                          onChanged: (value) {
+                            setState(() {
+                              travellerType = value!;
+
+                              // Profile data refill
+                              final provider = Provider.of<ProfileDetailViewModel>(
+                                context,
+                                listen: false,
+                              );
+
+                              _fillInitialData(provider.getProfileModel);
+                            });
+                          },
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 100),
 
-              ],
+                      Expanded(
+                        child: RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          value: "other",
+                          groupValue: travellerType,
+                          title: const Text("Others"),
+                          onChanged: (value) {
+                            setState(() {
+                              travellerType = value!;
+
+                              // Clear all fields
+                              travellerName.clear();
+                              travellerEmail.clear();
+                              travellerPhone.clear();
+
+                              final bookingProvider =
+                              Provider.of<BookingSummaryProvider>(
+                                context,
+                                listen: false,
+                              );
+
+                              bookingProvider.isVerified = false;
+                              bookingProvider.isOtpSent = false;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+
+                  /// 👤 TRAVELER CARD
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(color: Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      shadows: const [
+                        BoxShadow(
+                          color: Color(0x0C000000),
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        /// NAME
+                        _inputField(
+                          readOnly: travellerType=="self"?true:false,
+                          controller: travellerName,
+                          hint: "Enter Full Name",
+                          icon: Icons.person,
+
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        /// EMAIL
+                        _inputField(
+                          readOnly: travellerType=="self"?true:false,
+                          controller: travellerEmail,
+                          hint: "Enter Email",
+                          icon: Icons.email,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                                  /// PHONE
+                                  _inputField(
+                                    readOnly:false,
+                                    controller: travellerPhone,
+                                    hint: "Enter Mobile Number",
+                                    icon: Icons.phone,
+maxLength: 10,
+                                    keyboardType: TextInputType.phone,
+                                    onChanged: (value) {
+                                      if (value.length == 10) {
+                                        pro.checkVerification(value, context);
+                                      }
+                                    },
+                                  ),
+                              // child: Container(
+                              //   decoration: BoxDecoration(
+                              //     color: Colors.grey.shade50,
+                              //     borderRadius: BorderRadius.circular(14),
+                              //     border: Border.all(color: const Color(0xFFF1F5F9)),
+                              //   ),
+                              //   child: TextFormField(
+                              //     controller: travellerPhone,
+                              //     decoration: InputDecoration(
+                              //       hintText: "Mobile Number",
+                              //       contentPadding: const EdgeInsets.symmetric(
+                              //         horizontal: 12,
+                              //         vertical: 14,
+                              //       ),
+                              //     ),
+                              //     keyboardType: TextInputType.phone,
+                              //
+                              //     onChanged: (value) {
+                              //       if (value.length == 10) {
+                              //         pro.checkVerification(value, context);
+                              //       }
+                              //     },
+                              //   ),
+                              // ),
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            /// VERIFY BUTTON / STATUS
+                            pro.isVerified
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                  )
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      pro.sendOtp(travellerPhone.text, context);
+                                    },
+                                    child: const Text("Verify"),
+                                  ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        /// OTP FIELD
+                        if (pro.isOtpSent)
+                          Pinput(
+                            length: 4,
+                            onCompleted: (pin) {
+                              pro.verifyOtp(travellerPhone.text, pin, context);
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 10),
+                  CustomText(
+                    'FARE BREAKDOWN',
+                    size: 14,
+                    weight: FontWeight.w700,
+                    color: ColorResource.textBlack,
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 1,
+                          color: const Color(0xFFF1F5F9),
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      shadows: [
+                        BoxShadow(
+                          color: Color(0x0C000000),
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        /// MAIN 3 ITEMS
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : textCard(
+                                title: 'Base Fare',
+                                price: '₹ ${widget.baseFare}',
+                              ),
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : const SizedBox(height: 10),
+
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : textCard(
+                                title: 'Distance Charge',
+                                price: '₹ ${widget.distanceCharge}',
+                              ),
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : const SizedBox(height: 10),
+
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : textCard(
+                                title: 'Time Charge',
+                                price: '₹ ${widget.timeCharge}',
+                              ),
+
+                        widget.bookingType == "hourly"
+                            ? SizedBox()
+                            : const SizedBox(height: 10),
+
+                        /// EXPANDABLE TILE
+                        Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
+                            childrenPadding: const EdgeInsets.only(top: 10),
+
+                            title: CustomText(
+                              "Expense Details",
+                              size: 16,
+                              weight: FontWeight.w600,
+                            ),
+
+                            children: [
+                              widget.bookingType == "hourly"
+                                  ? SizedBox()
+                                  : textCard(
+                                      title: 'Surge Charge',
+                                      price: '₹ ${widget.surgeCharge}',
+                                    ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'MCD Toll Charge',
+                                price: '₹ ${widget.mcdTollCharge}',
+                              ),   const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'Subtotal',
+                                price: '₹ ${widget.subtotal}',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'GST Percent',
+                                price: ' ${widget.gstPercent} %',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'GST Amount',
+                                price: '₹ ${widget.gstAmount}',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'Toll Charge',
+                                price: '₹ ${widget.tollCharge}',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: "Surge Charge Amount",
+                                price: '₹ ${widget.surchargeAmount}',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'Airport Fare',
+                                price: '₹ ${widget.airportFare}',
+                              ),
+                              const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'Night Fare',
+                                price: '₹ ${widget.nightFare}',
+                              ),  const SizedBox(height: 10),
+
+                              textCard(
+                                title: 'Wallet Discount',
+                                price: '- ₹ ${widget.walletDiscount}',
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// TOTAL
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(
+                              'Total Amount',
+                              size: 16,
+                              weight: FontWeight.w700,
+                            ),
+                            CustomText(
+                              // '₹ ${widget.totalFare}',
+                              '₹ ${widget.finalPayableAmount}',
+                              size: 20,
+                              weight: FontWeight.w700,
+                              color: ColorResource.textColor,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          "Disclaimer: By proceeding, you agree to Mann Fleet's Terms & Conditions. "
+                          "Fare may vary based on traffic, route, or waiting time. "
+                          "Cancellation charges may apply. "
+                          "Pets are not permitted during the ride.",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-        );
-      },),
+          );
+        },
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(14.0),
           child: Consumer<BookingSummaryProvider>(
-              builder: (context, provider, _) {
-                return CustomButton(title: 'Proceed to Pay ₹ ${widget.totalFare}', onTap:  provider.isVerified
-                    ? ()async {
-                  if (travellerName.text.trim().isEmpty) {
-                    ToastHelper.show(
-                      context,
-                      message: "Please enter name",
-                      type: ToastType.warning,
-                    );
-                    return;
-                  }
+            builder: (context, provider, _) {
+              return CustomButton(
+                title:widget.finalPayableAmount=="0"?"Book Now": 'Proceed to Pay ₹ ${widget.finalPayableAmount}',
+                // title: 'Proceed to Pay ₹ ${widget.totalFare}',
+                onTap: provider.isVerified
+                    ? () async {
+                        if (travellerName.text.trim().isEmpty) {
+                          ToastHelper.show(
+                            context,
+                            message: "Please enter name",
+                            type: ToastType.warning,
+                          );
+                          return;
+                        }
 
-                  if (travellerEmail.text.trim().isEmpty) {
-                    ToastHelper.show(
-                      context,
-                      message: "Please enter email",
-                      type: ToastType.warning,
-                    );
-                    return;
-                  }
+                        if (travellerEmail.text.trim().isEmpty) {
+                          ToastHelper.show(
+                            context,
+                            message: "Please enter email",
+                            type: ToastType.warning,
+                          );
+                          return;
+                        }
 
-                  if (travellerPhone.text.trim().isEmpty ||
-                      travellerPhone.text.length < 10) {
-                    ToastHelper.show(
-                      context,
-                      message: "Please enter valid phone number",
-                      type: ToastType.warning,
-                    );
-                    return;
-                  }
-                  await  callBookingApi();
-                  // razorpayService.openCheckout(
-                  //   amount: widget.totalFare,
-                  //   name: "Mann Fleet",
-                  //   description: "Cab Booking Payment",
-                  //   contact: "9161470607",
-                  //   email: "test@gmail.com",
-                  // );
-                }: () {
-
-                  ToastHelper.show(
-                    context,
-                    message: "Please verify your number",
-                    type: ToastType.error,
-                  );
-                  // ScaffoldMessenger.of(context).showSnackBar(
-                  //   const SnackBar(
-                  //     content: Text("Please verify your number"),
-                  //   ),
-                  // );
-                },backgroundColor: provider.isVerified?ColorResource.buttonBackground:Colors.grey,);
-              }
+                        if (travellerPhone.text.trim().isEmpty ||
+                            travellerPhone.text.length < 10) {
+                          ToastHelper.show(
+                            context,
+                            message: "Please enter valid phone number",
+                            type: ToastType.warning,
+                          );
+                          return;
+                        }
+                        await callBookingApi();
+                        // razorpayService.openCheckout(
+                        //   amount: widget.totalFare,
+                        //   name: "Mann Fleet",
+                        //   description: "Cab Booking Payment",
+                        //   contact: "9161470607",
+                        //   email: "test@gmail.com",
+                        // );
+                      }
+                    : () {
+                        ToastHelper.show(
+                          context,
+                          message: "Please verify your number",
+                          type: ToastType.error,
+                        );
+                        // ScaffoldMessenger.of(context).showSnackBar(
+                        //   const SnackBar(
+                        //     content: Text("Please verify your number"),
+                        //   ),
+                        // );
+                      },
+                backgroundColor: provider.isVerified
+                    ? ColorResource.buttonBackground
+                    : Colors.grey,
+              );
+            },
           ),
         ),
       ),
@@ -1138,7 +1355,7 @@ class _BookingSummaryState extends State<BookingSummary> {
     required String estimatedTime,
   }) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.all(10),
       clipBehavior: Clip.antiAlias,
       // padding: const EdgeInsets.all(16),
       decoration: ShapeDecoration(
@@ -1174,7 +1391,7 @@ class _BookingSummaryState extends State<BookingSummary> {
                 // width: 24,
                 // height: 24,
                 fit: BoxFit.contain,
-                imageType:ImageType.network,
+                imageType: ImageType.network,
               ),
             ),
           ),
@@ -1195,7 +1412,8 @@ class _BookingSummaryState extends State<BookingSummary> {
                   weight: FontWeight.w700,
                   color: ColorResource.textColor,
                 ),
-              ),SizedBox(height: 4,),
+              ),
+              SizedBox(height: 4),
               // Text(
               //   title,
               //   style: TextStyle(
@@ -1206,16 +1424,19 @@ class _BookingSummaryState extends State<BookingSummary> {
               //     height: 1.40,
               //   ),
               // ),SizedBox(height: 6,),
-              Text(
-                estimatedTime,
-                maxLines: 2,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: ColorResource.viewText,
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.6,
+                child: Text(
+                  estimatedTime,
+                  maxLines: 2,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: ColorResource.viewText,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-
             ],
           ),
         ],
@@ -1223,15 +1444,14 @@ class _BookingSummaryState extends State<BookingSummary> {
     );
   }
 
-
-
   Widget _inputField({
     required TextEditingController controller,
     required String hint,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     Function(String)? onChanged,
-
+    int? maxLength, // Dynamic length
+    required bool readOnly, // Dynamic length
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -1241,19 +1461,17 @@ class _BookingSummaryState extends State<BookingSummary> {
       ),
       child: TextField(
         controller: controller,
+        readOnly: readOnly,
+
         keyboardType: keyboardType,
         onChanged: onChanged,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
+        maxLength: maxLength,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
+          counterText: "",
           prefixIcon: Icon(icon, size: 20, color: Colors.grey),
           hintText: hint,
-          hintStyle: const TextStyle(
-            color: Colors.grey,
-            fontSize: 13,
-          ),
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
@@ -1263,6 +1481,4 @@ class _BookingSummaryState extends State<BookingSummary> {
       ),
     );
   }
-
-
 }

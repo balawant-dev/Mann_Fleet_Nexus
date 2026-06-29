@@ -1,7 +1,7 @@
 class VerifyOtpModel {
-  bool? status;
-  String? message;
-  String? token;
+  var status;
+  var message;
+  var token;
   Data? data;
 
   VerifyOtpModel({this.status, this.message, this.token, this.data});
@@ -44,37 +44,44 @@ class Data {
 }
 
 class User {
-  String? sId;
-  String? id;
-  String? mobile;
-  int? walletBalance;
-  bool? isVerified;
-  String? deviceId;
-  String? deviceType;
-  String? createdAt;
-  String? updatedAt;
-  int? iV;
-  String? fcmToken;
+  var sId;
+  var name;
+  var id;
+  var mobile;
+  var walletBalance;
+  var isVerified;
+  var isProfileComplete;
+  var deviceId;
+  var deviceType;
+  var createdAt;
+  var updatedAt;
+  var iV;
+  var fcmToken;
 
-  User(
-      {this.sId,
-        this.id,
-        this.mobile,
-        this.walletBalance,
-        this.isVerified,
-        this.deviceId,
-        this.deviceType,
-        this.createdAt,
-        this.updatedAt,
-        this.iV,
-        this.fcmToken});
+  User({
+    this.sId,
+    this.name,
+    this.id,
+    this.mobile,
+    this.walletBalance,
+    this.isVerified,
+    this.isProfileComplete,
+    this.deviceId,
+    this.deviceType,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+    this.fcmToken,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
+    name = json['name'];
     id = json['id'];
     mobile = json['mobile'];
     walletBalance = json['walletBalance'];
     isVerified = json['isVerified'];
+    isProfileComplete = json['isProfileComplete'];
     deviceId = json['deviceId'];
     deviceType = json['deviceType'];
     createdAt = json['createdAt'];
@@ -86,10 +93,12 @@ class User {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
+    data['name'] = this.name;
     data['id'] = this.id;
     data['mobile'] = this.mobile;
     data['walletBalance'] = this.walletBalance;
     data['isVerified'] = this.isVerified;
+    data['isProfileComplete'] = this.isProfileComplete;
     data['deviceId'] = this.deviceId;
     data['deviceType'] = this.deviceType;
     data['createdAt'] = this.createdAt;

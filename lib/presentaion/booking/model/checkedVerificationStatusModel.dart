@@ -1,6 +1,6 @@
 class CheckedVerificationStatusModel {
   bool? status;
-  String? message;
+  var message;
   Data? data;
 
   CheckedVerificationStatusModel({this.status, this.message, this.data});
@@ -23,7 +23,7 @@ class CheckedVerificationStatusModel {
 }
 
 class Data {
-  String? mobile;
+  var mobile;
   bool? isVerified;
 
   Data({this.mobile, this.isVerified});

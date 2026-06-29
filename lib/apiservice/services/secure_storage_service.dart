@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
 import 'package:flutter/material.dart';
+
 class SecureStorageService {
   static const _storage = FlutterSecureStorage();
 
@@ -13,27 +14,16 @@ class SecureStorageService {
     return await _storage.read(key: ApiConstants.tokenKey);
   }
 
-
-
-
-
-
-
-
-
-
-
-
   /// IS AGENT
-  static Future<void> saveIsAgent(bool value) async {
+  static Future<void> saveIsProfileComplete(bool value) async {
     await _storage.write(
-      key: ApiConstants.isAgentKey,
+      key: ApiConstants.isProfileComplete,
       value: value.toString(), // true / false
     );
   }
 
-  static Future<bool> getIsAgent() async {
-    final value = await _storage.read(key: ApiConstants.isAgentKey);
+  static Future<bool> getIsProfileComplete() async {
+    final value = await _storage.read(key: ApiConstants.isProfileComplete);
     return value == 'true';
   }
 
@@ -48,11 +38,9 @@ class SecureStorageService {
   }
 
   /// IS AGENT - REMOVE
-  static Future<void> removeIsAgent() async {
-    await _storage.delete(key: ApiConstants.isAgentKey);
+  static Future<void> removeIsProfileComplete() async {
+    await _storage.delete(key: ApiConstants.isProfileComplete);
   }
-
-
 
   static Future<void> removeToken() async {
     await _storage.delete(key: ApiConstants.tokenKey);

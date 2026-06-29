@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-
 import '../../../../../apiservice/constants/api_constants.dart';
 import '../../../../../apiservice/exceptions/app_exceptions.dart';
 import '../../../../../apiservice/network/api_service.dart';
@@ -10,37 +9,57 @@ import '../../../../../apiservice/services/secure_storage_service.dart';
 import '../model/resendOtpModel.dart';
 import '../model/verifyOtpModel.dart';
 
-class VerifyOtpRepo{
+class VerifyOtpRepo {
   final ApiService _api = ApiService();
 
   Future<VerifyOtpModel> verifyOtp({
     required String phone,
     required String otp,
-    required String fcmToken ,
-    required String deviceId ,
-    required String deviceType ,
+    required String fcmToken,
+    required String deviceId,
+    required String deviceType,
     required BuildContext context,
   }) async {
     try {
       final response = await _api.post(
         ApiConstants.verifyOtp,
-        data: {'mobile': phone,"otp":otp,"fcmToken":fcmToken,"deviceId":deviceId,"deviceType":deviceType },
+        data: {
+          'mobile': phone,
+          "otp": otp,
+          "fcmToken": fcmToken,
+          "deviceId": deviceId,
+          "deviceType": deviceType,
+        },
         requiresAuth: false,
       );
-      //   await SecureStorageService.saveToken(response['token']);
+      await SecureStorageService.saveToken(response['token']);
       return VerifyOtpModel.fromJson(response);
       //  return LoginModel.fromJson(response['user']);
     } on DioException catch (e) {
       if (e.error is NoInternetException) {
         showNoInternetScreen(
           context,
-          onRetry: () => verifyOtp(phone: phone, otp: otp,context: context,fcmToken: fcmToken,deviceId: deviceId,deviceType: deviceType),
+          onRetry: () => verifyOtp(
+            phone: phone,
+            otp: otp,
+            context: context,
+            fcmToken: fcmToken,
+            deviceId: deviceId,
+            deviceType: deviceType,
+          ),
         );
         throw NoInternetException();
       } else if (e.error is ServerException) {
         showServerErrorScreen(
           context,
-          onRetry: () => verifyOtp(phone: phone, otp: otp,context: context,fcmToken: fcmToken,deviceType: deviceType,deviceId: deviceId),
+          onRetry: () => verifyOtp(
+            phone: phone,
+            otp: otp,
+            context: context,
+            fcmToken: fcmToken,
+            deviceType: deviceType,
+            deviceId: deviceId,
+          ),
         );
         throw ServerException();
       } else if (e.error is UnauthorizedException) {
@@ -52,7 +71,9 @@ class VerifyOtpRepo{
     } catch (e) {
       throw ApiException(0, e.toString());
     }
-  }  Future<ResendOtpModel> resendOtpApi({
+  }
+
+  Future<ResendOtpModel> resendOtpApi({
     required String phone,
 
     required BuildContext context,
@@ -60,7 +81,7 @@ class VerifyOtpRepo{
     try {
       final response = await _api.post(
         ApiConstants.signUp,
-        data: {'mobile': phone,"countryCode":"+91"},
+        data: {'mobile': phone, "countryCode": "+91"},
         requiresAuth: false,
       );
       //   await SecureStorageService.saveToken(response['token']);
