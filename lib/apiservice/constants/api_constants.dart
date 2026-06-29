@@ -10,6 +10,7 @@ class ApiConstants {
 
   //Local Url
   // static const String baseUrl = 'http://3.7.202.40:9020';
+  // static const String baseUrl = 'http://3.7.202.40:9020';
 
   static const String verifyOtp = '/api/user/verifyOtp';
 
