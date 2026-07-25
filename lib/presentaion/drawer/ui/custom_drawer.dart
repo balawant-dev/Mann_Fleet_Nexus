@@ -305,14 +305,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                           },
                         ),
 
-                        const Divider(height: 32, thickness: 1),
-
-                        drawerItem(
-                          icon: Icons.logout,
-                          title: "Log Out",
-                          onTap: () => showLogoutDialog(context),
-                          color: Colors.red,
-                        ),
+                        // const Divider(height: 32, thickness: 1),
+                        //
+                        // drawerItem(
+                        //   icon: Icons.logout,
+                        //   title: "Log Out",
+                        //   onTap: () => showLogoutDialog(context),
+                        //   color: Colors.red,
+                        // ),
                         const Divider(height: 32, thickness: 1),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,

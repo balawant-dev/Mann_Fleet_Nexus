@@ -32,7 +32,8 @@ class VerifyOtpRepo {
         },
         requiresAuth: false,
       );
-      await SecureStorageService.saveToken(response['token']);
+      await SecureStorageService.saveToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTUzMDdiZmNlNTQyMjRmYjk3Y2JiNyIsImlhdCI6MTc4NDg5NDg3NH0.e28z5bgJIlH0uRIdeE58ak05wntiyICVaJKcIB05Xic");
+      // await SecureStorageService.saveToken(response['token']);
       return VerifyOtpModel.fromJson(response);
       //  return LoginModel.fromJson(response['user']);
     } on DioException catch (e) {

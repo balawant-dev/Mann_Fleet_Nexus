@@ -1,7 +1,7 @@
 class ApiConstants {
   //Live Url
-  static const String baseUrl = 'http://167.71.226.189:9020';
-  // static const String baseUrl = 'https://admin.mannfleetpartners.com';
+  // static const String baseUrl = 'http://167.71.226.189:9020';
+  static const String baseUrl = 'https://admin.mannfleetpartners.com';
   // static const String baseUrl =  'http://3.7.202.40:9020';
   // static const String razorPayKey = 'rzp_test_hCRLFPf6rY3elm';
   // static const String googleApiKey = 'AIzaSyAw5iIsWyZnq8Ejy8jLC2jcKvNRxI5Ll3w';

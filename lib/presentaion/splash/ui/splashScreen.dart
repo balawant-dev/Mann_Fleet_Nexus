@@ -26,46 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    checkUpdateAndNavigate();
+    // checkUpdateAndNavigate();
 
-    // checkLogin();
-  }
-  Future<void> checkUpdateAndNavigate() async {
-    final provider =
-    Provider.of<PlatformDependenciesPro>(context, listen: false);
-
-    /// ✅ API call
-    await provider.getPlatformDependenciesApi(context: context);
-
-    final data = provider.platformDependenciesModel?.data;
-
-    final info = await PackageInfo.fromPlatform();
-    final currentVersion = info.version; // e.g. 1.0.2
-    print("Print current version >>>>>>>>>>${currentVersion}");
-
-    if (data != null && data.isNotEmpty) {
-      final apiData = data[0].name;
-      final apiVersion = data[0].name?.userAppVersion ?? "0.0.0";
-      await AppConfigService.saveKeys(
-        razor: apiData?.rAZORKEY ?? "",
-        google: apiData?.googleMapKey ?? "",
-      );
-
-      /// 🔥 Compare versions
-      bool updateRequired = isUpdateRequired(currentVersion, apiVersion);
-
-      if (updateRequired) {
-        showUpdateDialog(
-          "A new version ($apiVersion) is available. Please update your app.",
-        );
-        return;
-      }
-    }
-
-    /// ✅ Continue app flow
-    await Future.delayed(const Duration(seconds: 2));
     checkLogin();
   }
+
   bool isUpdateRequired(String currentVersion, String apiVersion) {
     List<int> current = currentVersion.split('.').map(int.parse).toList();
     List<int> api = apiVersion.split('.').map(int.parse).toList();
@@ -83,6 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
   Future<void> checkLogin() async {
     // await FirebaseService.init();
+    await SecureStorageService.saveToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTUzMDdiZmNlNTQyMjRmYjk3Y2JiNyIsImlhdCI6MTc4NDg5NDg3NH0.e28z5bgJIlH0uRIdeE58ak05wntiyICVaJKcIB05Xic");
     final token = await SecureStorageService.getToken();
 
     print("Check Token in Splash Screen >>>>>>>>>>>🟢🟢🟢🟢  ${token}");
