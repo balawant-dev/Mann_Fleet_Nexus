@@ -1,7 +1,11 @@
 class ApiConstants {
   //Live Url
-  // static const String baseUrl = 'http://167.71.226.189:9020';
+
+  // static const String baseUrl = 'https://enquiry.teknikoglobal.com';
+   //static const String baseUrl = 'http://167.71.238.86:9021';
   static const String baseUrl = 'https://admin.mannfleetpartners.com';
+  //static const String baseUrl = 'http://167.71.238.86:3459';
+
   // static const String baseUrl =  'http://3.7.202.40:9020';
   // static const String razorPayKey = 'rzp_test_hCRLFPf6rY3elm';
   // static const String googleApiKey = 'AIzaSyAw5iIsWyZnq8Ejy8jLC2jcKvNRxI5Ll3w';
@@ -16,6 +20,7 @@ class ApiConstants {
   static const String signUp = '/api/user/signUp';
   static const String banner = '/api/user/banner';
   static const String recentTripLocations = '/api/user/recentTripLocations';
+  static const String recentSearcheHistory = '/api/user/recentSearcheHistory';
   static const String recentSearches = '/api/user/recentSearches';
   // static const String recentSearches = '/api/user/recentSearches';
   static const String shuttleShiftStoppage = '/api/user/shuttleShiftStoppage';
@@ -26,11 +31,17 @@ class ApiConstants {
   static const String stoppageNames = '/api/user/stoppageNames';
   static const String hourlyPackage = '/api/user/hourlyPackage';
   static const String bookingEstimate = '/api/user/bookingEstimate';
-  static const String booking = '/api/user/booking';
+  static const String fareSummary = '/api/user/fareSummary';
+  static const String fareSummaryTab = '/api/user/fareSummaryTab';
+  // static const String booking = '/api/user/booking';
+  static const String booking = '/api/user/bookingTab';
   static const String cancelBooking = '/api/user/cancelBooking';
   static const ratings = "/api/user/ratings";
+  static const getPolyLine = "/api/user/getPolyLine";
   static const generateInvoice = "/api/user/generateInvoice";
   static const retryPayment = "/api/user/retryPayment";
+  static const getCoupon = "/api/user/getCoupon";
+  static const applyCoupon = "/api/user/applyCoupon";
   static const String sendOtpVerification = '/api/user/phoneVerification/send';
   static const String verifyOtpVerification =
       '/api/user/phoneVerification/verify';

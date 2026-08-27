@@ -26,26 +26,42 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // checkUpdateAndNavigate();
+    checkUpdateAndNavigate();
+
+    // checkLogin();
+  }
+  Future<void> checkUpdateAndNavigate() async {
+    final provider = Provider.of<PlatformDependenciesPro>(
+      context,
+      listen: false,
+    );
+
+    /// ✅ API call
+    await provider.getPlatformDependenciesApi(context: context);
+
+    final data = provider.platformDependenciesModel?.data;
+
+    final info = await PackageInfo.fromPlatform();
+    final currentVersion = info.version;
+    print("Print current version >>>>>>>>>>${currentVersion}");
+
+    if (data != null && data.isNotEmpty) {
+      final apiData = data[0].name;
+      final apiVersion = data[0].name?.userAppVersion ?? "0.0.0";
+      await AppConfigService.saveKeys(
+        razor: apiData?.rAZORKEY ?? "",
+        google: apiData?.googleMapKey ?? "",
+      );
+
+
+
+
+    }
+
 
     checkLogin();
   }
 
-  bool isUpdateRequired(String currentVersion, String apiVersion) {
-    List<int> current = currentVersion.split('.').map(int.parse).toList();
-    List<int> api = apiVersion.split('.').map(int.parse).toList();
-
-    for (int i = 0; i < api.length; i++) {
-      if (current.length <= i) return true;
-
-      if (api[i] > current[i]) {
-        return true; // update required
-      } else if (api[i] < current[i]) {
-        return false;
-      }
-    }
-    return false;
-  }
   Future<void> checkLogin() async {
     // await FirebaseService.init();
     await SecureStorageService.saveToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTUzMDdiZmNlNTQyMjRmYjk3Y2JiNyIsImlhdCI6MTc4NDg5NDg3NH0.e28z5bgJIlH0uRIdeE58ak05wntiyICVaJKcIB05Xic");

@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../../apiservice/services/secure_storage_service.dart';
+import '../../../shuttleModule/shuttleHistory/ui/shuttleHistoryScreen.dart';
 import '../../../util/color/app_colors.dart';
 import '../../../util/image_resource/image_resource.dart';
 import '../../../widget/customImageView.dart';
@@ -16,7 +17,8 @@ import '../../cms/ui/settingsScreen.dart';
 import '../../emergencySos/ui/emergencySosScreen.dart';
 import '../../profile/viewModel/profileViewModel.dart';
 
-import '../../shuttleModule/shuttleHistory/ui/shuttleHistoryScreen.dart';
+
+
 import '../../splash/ui/splashScreen.dart';
 import '../../wallet/ui/walletScreen.dart';
 

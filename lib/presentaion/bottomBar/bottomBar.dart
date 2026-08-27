@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:mannfleet/widget/custom_text.dart';
 import 'package:provider/provider.dart';
+import '../../shuttleModule/myShuttle/ui/myShuttleScreen.dart';
 import '../../util/color/app_colors.dart';
 import '../../util/image_resource/image_resource.dart';
-import '../booking/ui/vehicleSelectionScreen.dart';
-import '../bookingHistory/provider/bookingHistoryProvider.dart';
+
 import '../bookingHistory/ui/bookingHistoryScreen.dart';
 import '../home/ui/home_screen.dart';
 import '../newComplaints/ui/newComplaintScreen.dart';
-import '../passes/ui/passes_screen.dart';
-import '../profile/ui/profile_screen.dart';
-import '../shuttleModule/myShuttle/ui/myShuttleScreen.dart';
-import '../shuttleModule/shuttleHistory/ui/shuttleHistoryScreen.dart';
+
 import '../wallet/ui/walletScreen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -44,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const BookingHistoryScreen(),
     // const PassesScreen(),
-    const  MyPassesScreen(),
+    // const  MyPassesScreen(),
  // const ShuttleHistoryScreen(),
 
     const NewComplaint(),
@@ -96,14 +93,14 @@ class _MainScreenState extends State<MainScreen> {
                   unSelectedIcon: AppIcons.bookinInactive,
                 ),
 
-                bottomItem(
-                  index: 2,
-                  // label: "SHUTTLE",
-                  // label: "WALLET",
-                  label: "PASSES",
-                  selectedIcon: AppIcons.passActive,
-                  unSelectedIcon:  AppIcons.passedInactive,
-                ),
+                // bottomItem(
+                //   index: 2,
+                //   // label: "SHUTTLE",
+                //   // label: "WALLET",
+                //   label: "PASSES",
+                //   selectedIcon: AppIcons.passActive,
+                //   unSelectedIcon:  AppIcons.passedInactive,
+                // ),
 
                 bottomItem(
                   index: 3,

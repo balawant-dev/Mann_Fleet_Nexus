@@ -7,7 +7,11 @@ import '../../../../../apiservice/exceptions/app_exceptions.dart';
 import '../../../../../apiservice/network/api_service.dart';
 import '../../../../../apiservice/network/network_utils.dart';
 import '../../../../../apiservice/services/secure_storage_service.dart';
-import '../../shuttleModule/shuttleList/model/allUniqueStoppageModel.dart';
+
+import '../../../shuttleModule/shuttleList/model/allUniqueStoppageModel.dart';
+
+
+import '../model/savedRecentSearchModel.dart';
 import '../ui/model/bannerModel.dart';
 import '../ui/model/choosePackageModel.dart';
 import '../ui/model/oneWayBookingModel.dart';
@@ -77,6 +81,89 @@ class HomeRepo {
     }
   }
 
+  // Future<GetNewRecentSearchModel> getRecentSearchHistoryNew({
+  //   required BuildContext context,
+  // }) async {
+  //   try {
+  //     final response = await _api.get(
+  //       ApiConstants.recentSearcheHistory,
+  //       requiresAuth: true,
+  //     );
+  //     return GetNewRecentSearchModel.fromJson(response);
+  //   } on DioException catch (e) {
+  //     if (e.error is NoInternetException) {
+  //       showNoInternetScreen(
+  //         context,
+  //         onRetry: () => getRecentLocations(context: context),
+  //       );
+  //       throw NoInternetException();
+  //     } else if (e.error is ServerException) {
+  //       showServerErrorScreen(
+  //         context,
+  //         onRetry: () => getRecentLocations(context: context),
+  //       );
+  //       throw ServerException();
+  //     } else if (e.error is UnauthorizedException) {
+  //       await SecureStorageService.logout(context);
+  //       throw UnauthorizedException();
+  //     } else {
+  //       rethrow;
+  //     }
+  //   } catch (e) {
+  //     throw ApiException(0, e.toString());
+  //   }
+  // }
+
+  Future<SavedRecentSearchModel> postRecentSearchHistoryNew({
+    required BuildContext context,
+    required String location,
+    // required String nearAddress,
+    // required String addressType,
+    required String latitude,
+    required String longitude,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiConstants.recentSearcheHistory,
+        requiresAuth: true,
+        data: {
+          "location": location, "latitude": latitude,
+          "longitude":longitude,
+          // "addressType":addressType,
+          // "addressName":nearAddress,
+        }
+      );
+      return SavedRecentSearchModel.fromJson(response);
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => postRecentSearchHistoryNew(context: context,latitude: latitude,location: location,longitude: longitude,
+
+              // nearAddress: nearAddress,addressType: addressType
+
+          ),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => postRecentSearchHistoryNew(context: context,latitude: latitude,location: location,longitude: longitude
+              // ,addressType: addressType,nearAddress: nearAddress
+          ),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
+  }
+
   Future<Map<String, dynamic>> saveFavoriteLocations({
     required BuildContext context,
     required String location,
@@ -130,6 +217,48 @@ class HomeRepo {
     } catch (e) {
       throw ApiException(0, e.toString());
     }
+  }  Future<Map<String, dynamic>> removeFavoriteLocations({
+    required BuildContext context,
+    required String id,
+
+  }) async {
+    try {
+      final response = await _api.delete(
+        "${ApiConstants.recentSearches}/$id",
+        requiresAuth: true,
+
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        showNoInternetScreen(
+          context,
+          onRetry: () => removeFavoriteLocations(
+            context: context,
+            id: id
+
+          ),
+        );
+        throw NoInternetException();
+      } else if (e.error is ServerException) {
+        showServerErrorScreen(
+          context,
+          onRetry: () => removeFavoriteLocations(
+
+              context: context,
+              id: id
+          ),
+        );
+        throw ServerException();
+      } else if (e.error is UnauthorizedException) {
+        await SecureStorageService.logout(context);
+        throw UnauthorizedException();
+      } else {
+        rethrow;
+      }
+    } catch (e) {
+      throw ApiException(0, e.toString());
+    }
   }
 
   Future<ShuttleShiftStopPageModel> getShuttleShiftStopApi({
@@ -137,11 +266,20 @@ class HomeRepo {
     required String source,
     required String destination,
     required String date,
+    required String travelType,
   }) async {
     try {
       final response = await _api.get(
-        "${ApiConstants.shuttleShiftStoppage}?source=$source&destination=$destination&date=$date",
+        ApiConstants.shuttleShiftStoppage,
+        queryParameters: {
+          'source': source,
+          'destination': destination,
+          'date': date,
+          'travelType':travelType
+        },
+        // "${ApiConstants.shuttleShiftStoppage}?source=$source&destination=$destination&date=$date",
         // data: {'mobile': phone,"countryCode":countryCode },
+
         requiresAuth: true,
       );
       //   await SecureStorageService.saveToken(response['token']);
@@ -163,7 +301,8 @@ class HomeRepo {
             context: context,
             source: source,
             destination: destination,
-            date: date
+            date: date,
+              travelType:travelType
           ),
         );
         throw NoInternetException();
@@ -173,7 +312,7 @@ class HomeRepo {
           onRetry: () => getShuttleShiftStopApi(
             context: context,
             source: source,
-            destination: destination,            date: date
+            destination: destination,            date: date,travelType:travelType
           ),
         );
         throw ServerException();

@@ -6,10 +6,12 @@ import 'package:mannfleet/util/color/app_colors.dart';
 import 'package:mannfleet/widget/custom_button.dart';
 
 import 'package:mannfleet/widget/navigator_method.dart';
+import '../../../../shuttleModule/shuttleList/model/allUniqueStoppageModel.dart';
+import '../../../../shuttleModule/shuttleList/ui/shuttleShiftScreen.dart';
 import '../../../../widget/motionToastHelper.dart';
 import '../../../../widget/showLoaderFunction.dart';
-import '../../../shuttleModule/shuttleList/model/allUniqueStoppageModel.dart';
-import '../../../shuttleModule/shuttleList/ui/shuttleShiftScreen.dart';
+
+
 import '../../provider/homeProvider.dart';
 
 import 'package:dropdown_search/dropdown_search.dart';
@@ -19,6 +21,7 @@ class AirportShuttleView extends StatefulWidget {
   final double screenHeight;
   final double screenWidth;
   final VoidCallback? onLocationFocus;
+  //Onward Shifts, Return Shifts,
 
   const AirportShuttleView({
     super.key,
@@ -46,11 +49,7 @@ class _AirportShuttleViewState extends State<AirportShuttleView> {
       selectedDate == null
           ? ""
           : DateFormat("yyyy-MM-dd").format(selectedDate!);
-  final List<String> imgList = [
-    'https://www.shutterstock.com/image-vector/green-bus-ticket-male-passenger-600nw-2568648387.jpg',
-    'https://t3.ftcdn.net/jpg/04/64/95/84/360_F_464958421_ANvZSiYNItJYlSHjnikzlELE4FC1e9BT.jpg',
-    'https://www.shutterstock.com/image-vector/bus-ticket-online-pay-smart-600nw-2595978685.jpg',
-  ];
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -62,6 +61,7 @@ class _AirportShuttleViewState extends State<AirportShuttleView> {
           margin: const EdgeInsets.all(12),
           decoration: ShapeDecoration(
             color: ColorResource.white,
+            // color: ColorResource.white,
             shape: RoundedRectangleBorder(
               side: BorderSide(width: 1, color: ColorResource.homeOption),
               borderRadius: BorderRadius.circular(16),
@@ -73,18 +73,18 @@ class _AirportShuttleViewState extends State<AirportShuttleView> {
 
                   Text(
                     "Where are you heading today?",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700,     color:   Colors.black,),
                   ),
                   SizedBox(height: 8),
                   Text(
                     "Find the best shuttleHistory routes across your city corridors.",
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 13,      color:   Colors.black,),
                   ),
                   SizedBox(height: 24),
 
               _buildLocationFields(),
               const SizedBox(height: 10),
-Text("Select Journey Date",style: TextStyle(fontSize: 12),),              const SizedBox(height: 5),
+Text("Select Journey Date",style: TextStyle(fontSize: 12,     color:   Colors.black,),),              const SizedBox(height: 5),
 // dtret
               GestureDetector(
                 onTap: () async {
@@ -117,20 +117,31 @@ Text("Select Journey Date",style: TextStyle(fontSize: 12),),              const 
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_month),
+                       Icon(Icons.calendar_month,     color:   Colors.black,),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           displayDate,
-                          style: const TextStyle(
+                          style:  TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w400,     color:   Colors.black,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 8),
+              Text("Travel Type", style: TextStyle(fontSize: 12,     color:   Colors.black,)),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildRadioOption("Single", "single"),
+                  const SizedBox(width: 24),
+                  _buildRadioOption("Both", "both"),
+                ],
               ),
 
 
@@ -175,6 +186,7 @@ Text("Select Journey Date",style: TextStyle(fontSize: 12),),              const 
                     destination: widget.provider.selectedDestination?.name ?? "",
                     source: widget.provider.selectedSource?.name ?? "",
                     date: apiDate,
+                    travelType: widget.provider.travelType,
                     // date: "yyyy-MM-dd"//ise dynamic karo ok
                   );
 
@@ -187,7 +199,7 @@ Text("Select Journey Date",style: TextStyle(fontSize: 12),),              const 
                     type: ToastType.success,
                   );
                   print("🎁🎁🎁🎁🎁🎁Yes ho gya hai complte ok");
-                  navPush(context: context, action: ShuttleShiftScreen(shuttleShiftStopPageModel: widget.provider.shuttleShiftStopPageModel!,));
+                  navPush(context: context, action: ShuttleShiftScreen(shuttleShiftStopPageModel: widget.provider.shuttleShiftStopPageModel!,travelType:  widget.provider.travelType,));
 
 
                 },
@@ -207,19 +219,44 @@ Text("Select Journey Date",style: TextStyle(fontSize: 12),),              const 
       ],
     );
   }
+  Widget _buildRadioOption(String title, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Radio<String>(
 
+          value: value,
+          groupValue: widget.provider.travelType,           // From Provider
+          activeColor: ColorResource.primary,
+          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return ColorResource.primary; // Selected color
+            }
+            return Colors.grey; // Inactive border color
+          }),
+
+          onChanged: (newValue) {
+            if (newValue != null) {
+              widget.provider.setTravelType(newValue);      // Update via Provider
+            }
+          },
+        ),
+        Text(title, style:  TextStyle(fontSize: 14,     color:   Colors.black,)),
+      ],
+    );
+  }
   Widget _buildLocationFields() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // labelText: isSource ? "Select Pickup Location" : "Select Drop Location" ,
-        Text("Select Pickup Location",style: TextStyle(fontSize: 12),), const SizedBox(height: 5),
+        Text("Select Pickup Location",style: TextStyle(fontSize: 12,     color:   Colors.black,),), const SizedBox(height: 5),
         /// SOURCE
         StoppageDropdown(
           provider: widget.provider,
           isSource: true,
         ),
 
-        SizedBox(height: 10),Text("Select Drop Location",style: TextStyle(fontSize: 12),), const SizedBox(height: 5),
+        SizedBox(height: 10),Text("Select Drop Location",style: TextStyle(fontSize: 12,     color:   Colors.black,),), const SizedBox(height: 5),
 
         /// DESTINATION
         StoppageDropdown(
@@ -248,6 +285,8 @@ class StoppageDropdown extends StatelessWidget {
       child: DropdownSearch<AllUniqueStoppageData>(
 
 
+
+
         /// ✅ API CALL YAHI HOGA
         items: (filter, loadProps) async {
           await provider.getStoppageNameApi(
@@ -259,6 +298,7 @@ class StoppageDropdown extends StatelessWidget {
 
         /// ✅ STRING SHOW
         itemAsString: (item) => item.name ?? "",
+
 
         /// ✅ SELECT
         onChanged: (value) {
@@ -276,63 +316,173 @@ class StoppageDropdown extends StatelessWidget {
             ? provider.selectedSource
             : provider.selectedDestination,
 
+
+
         /// ✅ IMPORTANT (compareFn required)
         compareFn: (item1, item2) =>
         item1.name == item2.name,
 
-        popupProps: PopupProps.menu(
 
+        popupProps: PopupProps.menu(
           showSearchBox: true,
 
-          searchFieldProps: TextFieldProps(
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(vertical: 1,horizontal: 10),
-              hintText: "Search location...",
-              hintStyle: TextStyle(color: Colors.black45,fontSize: 14),
-              // border: OutlineInputBorder(
-              //   gapPadding:
-              // ),
+          menuProps: const MenuProps(
+            backgroundColor: Colors.white,
+            // backgroundColor: Color(0xFF1E1E1E),
+          ),
 
+          searchFieldProps: TextFieldProps(
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor:  Colors.white,
+              // fillColor: const Color(0xFF2A2A2A),
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 1, horizontal: 10),
+              hintText: "Search location...",
+              hintStyle: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Colors.blue),
+              ),
             ),
           ),
 
-          /// ✅ FIXED BUILDER (4 PARAMS)
           itemBuilder: (context, item, isDisabled, isSelected) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            return Container(
+              color:  Colors.white,
+              // color: const Color(0xFF1E1E1E),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.name ?? "",style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500),),
-                  Text(item.address ?? "",style: TextStyle(fontSize: 10),),
-                  SizedBox(height: 5,),
-                  Divider()
+                  Text(
+                    item.name ?? "",
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.address ?? "",
+                    style:  TextStyle(
+                      color: Colors.black.withOpacity(0.7),
+                      fontSize: 10,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Divider(color: Colors.grey.shade800),
                 ],
               ),
             );
-
-            //   ListTile(
-            //
-            //
-            //   title: Text(item.name ?? "",style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),),
-            //   subtitle: Text(item.address ?? "",style: TextStyle(fontSize: 10),),
-            // );
           },
         ),
 
-        /// ✅ UI
-        decoratorProps: DropDownDecoratorProps(
 
-          decoration: InputDecoration(
-            hintText: isSource ? "Select Pickup Location" : "Select Drop Location",
-            hintStyle: TextStyle(color: Colors.black45,fontSize: 12),
-            // labelText: isSource ? "Select Pickup Location" : "Select Drop Location" ,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+        // popupProps: PopupProps.menu(
+        //
+        //   showSearchBox: true,
+        //
+        //   searchFieldProps: TextFieldProps(
+        //     decoration: InputDecoration(fillColor: ColorResource.bgColor,
+        //
+        //       contentPadding: EdgeInsets.symmetric(vertical: 1,horizontal: 10),
+        //       hintText: "Search location...",
+        //       hintStyle: TextStyle(     color:   Colors.black,fontSize: 14),
+        //       // border: OutlineInputBorder(
+        //       //   gapPadding:
+        //       // ),
+        //
+        //     ),
+        //   ),
+        //
+        //   /// ✅ FIXED BUILDER (4 PARAMS)
+        //   itemBuilder: (context, item, isDisabled, isSelected) {
+        //     return Container(
+        //       color: ColorResource.bgColor,
+        //       padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        //       child: Column(
+        //         crossAxisAlignment: CrossAxisAlignment.start,
+        //         children: [
+        //           Text(item.name ?? "",style: TextStyle(fontSize: 12,fontWeight: FontWeight.w500,     color:   Colors.black,),),
+        //           Text(item.address ?? "",style: TextStyle(fontSize: 10,     color:   Colors.black,),),
+        //           SizedBox(height: 5,),
+        //           Divider()
+        //         ],
+        //       ),
+        //     );
+        //
+        //     //   ListTile(
+        //     //
+        //     //
+        //     //   title: Text(item.name ?? "",style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),),
+        //     //   subtitle: Text(item.address ?? "",style: TextStyle(fontSize: 10),),
+        //     // );
+        //   },
+        // ),
+
+        /// ✅ UI
+        // decoratorProps: DropDownDecoratorProps(
+        //
+        //   decoration: InputDecoration(
+        //     hintText: isSource ? "Select Pickup Location" : "Select Drop Location",
+        //     hintStyle: TextStyle(     color:   Colors.black,fontSize: 12),
+        //     // labelText: isSource ? "Select Pickup Location" : "Select Drop Location" ,
+        //     border: OutlineInputBorder(
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //   ),
+        // ),
+        dropdownBuilder: (context, selectedItem) {
+          return Text(
+            selectedItem?.name ??
+                (isSource
+                    ? "Select Pickup Location"
+                    : "Select Drop Location"),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
-          ),
-        ),
+            overflow: TextOverflow.ellipsis,
+          );
+        },decoratorProps: DropDownDecoratorProps(decoration: InputDecoration(suffixIconColor: Colors.white,))
+        // decoratorProps: DropDownDecoratorProps(
+        //
+        //   decoration: InputDecoration(
+        //     filled: true,
+        //     fillColor: const Color(0xFF2A2A2A),
+        //     hintText:
+        //     isSource ? "Select Pickup Location" : "Select Drop Location",
+        //     hintStyle: const TextStyle(
+        //       color: Colors.grey,
+        //       fontSize: 12,
+        //     ),
+        //     suffixIconColor: Colors.white,
+        //     enabledBorder: OutlineInputBorder(
+        //       borderRadius: BorderRadius.circular(12),
+        //       borderSide: const BorderSide(color: Colors.grey),
+        //     ),
+        //     focusedBorder: OutlineInputBorder(
+        //       borderRadius: BorderRadius.circular(12),
+        //       borderSide: const BorderSide(color: Colors.blue),
+        //     ),
+        //   ),
+        // ),
       ),
     );
   }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mannfleet/presentaion/drawer/ui/accountScreen.dart';
 
 import 'package:mannfleet/util/color/app_colors.dart';
 import 'package:mannfleet/util/image_resource/image_resource.dart';
@@ -48,53 +49,70 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
+  // @override
+  // void didChangeMetrics() {
+  //   super.didChangeMetrics();
+  //
+  //   final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+  //
+  //   if (bottomInset > 0) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //       await Future.delayed(const Duration(milliseconds: 200));
+  //
+  //       if (!mounted || !scrollController.hasClients) return;
+  //
+  //       scrollController.animateTo(
+  //         scrollController.position.maxScrollExtent + 250,
+  //         duration: const Duration(milliseconds: 350),
+  //         curve: Curves.easeOut,
+  //       );
+  //     });
+  //   }
+  // }
 
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    if (bottomInset > 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await Future.delayed(const Duration(milliseconds: 200));
-
-        if (!mounted || !scrollController.hasClients) return;
-
-        scrollController.animateTo(
-          scrollController.position.maxScrollExtent + 250,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOut,
-        );
-      });
-    }
-  }
-
+  // void loadInitialData() {
+  //   final vm = Provider.of<HomeProvider>(context, listen: false);
+  //   vm.getBannerApi(context: context);
+  //   vm.getHourlyPackageApi(context: context);
+  //   vm.clearAllFields();
+  //   final vmProfile = Provider.of<ProfileDetailViewModel>(
+  //     context,
+  //     listen: false,
+  //   );
+  //   vmProfile.getProfileApi(context: context);
+  // }
 
   void loadInitialData() {
     final vm = Provider.of<HomeProvider>(context, listen: false);
+
     vm.getBannerApi(context: context);
     vm.getHourlyPackageApi(context: context);
-    vm.clearAllFields();
-    final vmProfile = Provider.of<ProfileDetailViewModel>(
-      context,
-      listen: false,
-    );
+    vm.setTravelType("single");
+    // Clear only if not coming from suggestion
+    // vm.clearAllFields();
+
+    final vmProfile = Provider.of<ProfileDetailViewModel>(context, listen: false);
     vmProfile.getProfileApi(context: context);
   }
 
   void scrollToTopTabs() {
-    if (tabsKey.currentContext != null) {
+    if (scrollController.hasClients) {
+      // Direct scroll to top using main controller (most reliable)
+      scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,   // Smooth and natural feel
+      );
+    } else if (tabsKey.currentContext != null) {
+      // Fallback
       final context = tabsKey.currentContext!;
-
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Scrollable.ensureVisible(
-          context,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-          alignment:0
-          // alignment: 0.001,
-        );
-      });
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+        alignment: 0.0,           // 0.0 = top of viewport
+      );
     }
   }
 
@@ -126,14 +144,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           default:
             genderTitle = "";
         }
-
+        // onRefresh: () async{
+        //   final vm = Provider.of<HomeProvider>(context, listen: false);
+        //   vm.clearAllFields();
+        // },
         return Scaffold(
           resizeToAvoidBottomInset: true,
+          // backgroundColor:Color(0xff2a2929),
           backgroundColor: ColorResource.white,
 
           key: _scaffoldKey,
-          drawer: const CustomDrawer(),
+          // drawer: const CustomDrawer(),
           appBar: PreferredSize(
+            
+            
             preferredSize: Size.fromHeight(80),
             child: SafeArea(
               child: Padding(
@@ -146,12 +170,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     /// ☰ Menu
                     GestureDetector(
                       onTap: () {
-                        _scaffoldKey.currentState!.openDrawer();
+                        // navPushLeft(context: context, action: AccountScreen(),duration: 350);
+                        // _scaffoldKey.currentState!.openDrawer();
                       },
-                      child: CustomImageView(
-                        imagePath: AppImages.menuImage,
-                        height: 40,
-                        width: 40,
+                      child: Image.asset(
+                       AppImages.menuImage,
+                        color: Colors.black,
+
+                        height: 60,
+
+                        width: 60,
+
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -166,9 +195,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         children: [
                           CustomText(
                             _getGreeting(),
-                            size: 12,
+                            size: 14,
                             weight: FontWeight.w500,
-                            color: ColorResource.textBlack,
+                            color: Colors.black.withOpacity(0.8),
+                            // color: ColorResource.textBlack,
                           ),
                           Text(
                             user?.name != null && user!.name!.isNotEmpty
@@ -176,9 +206,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 : "Guest",
                             maxLines: 1,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: ColorResource.black,
+                              color: Colors.black,
+                              // color: ColorResource.black,
                             ),
 
                           ),
@@ -193,11 +224,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       onTap: () {
                         navPush(context: context, action: NotificationScreen());
                       },
-                      child: CustomImageView(
-                        imagePath: AppImages.notification,
+                      child: Image.asset(
+                   AppImages.notification,
                         height: 40,
                         width: 40,
                         fit: BoxFit.cover,
+                        color: Colors.black,
                       ),
                     ),
                   ],
@@ -220,66 +252,82 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       child: Column(
                         children: [
 
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-
-
-                            margin: const EdgeInsets.symmetric(horizontal: 15),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: ColorResource.homeOption,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-
-                                children: List.generate(provider.tabs.length, (
-                                  index,
-                                ) {
-                                  bool isSelected =
-                                      provider.selectedIndex == index;
-
-                                  return GestureDetector(
-                                    onTap: () => provider.changeTab(index),
-                                    child: Container(
-                                      width: MediaQuery.of(context).size.width*0.3,
-                                      // duration: const Duration(
-                                      //   milliseconds: 250,
-                                      // ),
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? ColorResource.white
-                                            : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          provider.tabs[index],
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: isSelected
-                                                ? ColorResource.blueText
-                                                : ColorResource.textBlack,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ),
-                          ),
+//                           Container(
+// width: MediaQuery.of(context).size.width,
+//
+//                             margin: const EdgeInsets.symmetric(horizontal: 15),
+//                             padding: const EdgeInsets.all(6),
+//                             decoration: BoxDecoration(
+//                               gradient:  LinearGradient(
+//                                 colors: [
+//                                   ColorResource.primary,
+//                                   ColorResource.primarySec,
+//                                 ],
+//                                 begin: Alignment.topCenter,
+//                                 end: Alignment.bottomCenter,
+//                               ),
+//                               // color: ColorResource.homeOption,
+//                               // color: Color(0xfff2dfe0),
+//                               borderRadius: BorderRadius.circular(12),
+//                             ),
+//                             child: SingleChildScrollView(
+//                               scrollDirection: Axis.horizontal,
+//                               child: Row(
+//                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                                 children: List.generate(provider.tabs.length, (
+//                                   index,
+//                                 ) {
+//                                   bool isSelected =
+//                                       provider.selectedIndex == index;
+//
+//                                   return GestureDetector(
+//                                     onTap: () => provider.changeTab(index),
+//                                     child: Container(
+//
+//                                       width: MediaQuery.of(context).size.width*0.45,
+//                                       // width: MediaQuery.of(context).size.width*0.28,
+//                                       // duration: const Duration(
+//                                       //   milliseconds: 250,
+//                                       // ),
+//                                       margin: const EdgeInsets.only(right: 8),
+//                                       padding: const EdgeInsets.symmetric(
+//                                         horizontal: 4,
+//                                         vertical: 8,
+//                                       ),
+//                                       decoration: BoxDecoration(
+//                                         color: isSelected
+//                                             ? ColorResource.white
+//                                             : Colors.transparent,
+//                                         borderRadius: BorderRadius.circular(12),
+//                                       ),
+//                                       child: Center(
+//                                         child: Text(
+//                                           provider.tabs[index],
+//                                           style: TextStyle(
+//                                             fontSize: 16,
+//                                             fontWeight: FontWeight.w600,
+//                                             color: isSelected
+//                                                 ? ColorResource.primary
+//                                                 : Colors.white,
+//                                             // color: isSelected
+//                                             //     ? ColorResource.primary
+//                                             //     : Colors.black.withOpacity(0.8),
+//                                             // color: isSelected
+//                                             //     ? ColorResource.blueText
+//                                             //     : ColorResource.textBlack,
+//                                           ),
+//                                         ),
+//                                       ),
+//                                     ),
+//                                   );
+//                                 }),
+//                               ),
+//                             ),
+//                           ),
 
                           // SizedBox(height: screenHeight * 0.0125),
 
-                          if (provider.selectedIndex == 0)
+                          // if (provider.selectedIndex == 0)
                             AirportCityView(
                               provider: provider,
                               screenHeight: screenHeight,
@@ -287,22 +335,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                               onLocationFocus: scrollToTopTabs,
                               globalKey: tabsKey,
+                              scrollController: scrollController,
 
                             ),
 
-                          if (provider.selectedIndex == 1)
-                            AirportShuttleView(
-                              provider: provider,
-                              screenHeight: screenHeight,
-                              screenWidth: screenWidth,
-                            ),
+                          // if (provider.selectedIndex == 1)
+                          //   AirportShuttleView(
+                          //     provider: provider,
+                          //     screenHeight: screenHeight,
+                          //     screenWidth: screenWidth,
+                          //   ),
 
-                          if (provider.selectedIndex == 2)
-                            MannTajExpressView(
-                              provider: provider,
-                              screenHeight: screenHeight,
-                              screenWidth: screenWidth,
-                            ),
+                          // if (provider.selectedIndex == 2)
+                          //   MannTajExpressView(
+                          //     provider: provider,
+                          //     screenHeight: screenHeight,
+                          //     screenWidth: screenWidth,
+                          //   ),
 
 
                           if (bottomInsect) SizedBox(height: 120),
@@ -332,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: Colors.black,
         shape: RoundedRectangleBorder(
           side: const BorderSide(width: 1, color: Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(12),
@@ -451,14 +500,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String _getGreeting() {
     final hour = DateTime.now().hour;
 
-    if (hour >= 5 && hour < 12) {
+    if (hour < 12) {
       return "Good Morning";
-    } else if (hour >= 12 && hour < 17) {
+    } else if (hour < 17) {
       return "Good Afternoon";
-    } else if (hour >= 17 && hour < 21) {
-      return "Good Evening";
-    }
-    else {
+    } else {
       return "Good Evening";
     }
   }

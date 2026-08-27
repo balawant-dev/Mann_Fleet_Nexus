@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:mannfleet/util/color/app_colors.dart';
 
 class MapPickerScreen extends StatefulWidget {
   final double? initialLat;
@@ -29,13 +30,18 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   void initState() {
     super.initState();
 
-    if (widget.initialLat != null && widget.initialLng != null) {
+    if (widget.initialLat != null &&
+        widget.initialLng != null) {
+
       selectedLatLng = LatLng(
         widget.initialLat!,
         widget.initialLng!,
       );
 
-      _getAddress();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _getAddress();
+      });
+
     } else {
       _getCurrentLocation();
     }
@@ -80,6 +86,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
@@ -87,6 +94,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         children: [
           /// MAP
           GoogleMap(
+
+
             initialCameraPosition: CameraPosition(
               target: selectedLatLng,
               zoom: 16,
@@ -99,12 +108,14 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             onMapCreated: (controller) {
               mapController = controller;
 
-              mapController?.animateCamera(
-                CameraUpdate.newLatLngZoom(
-                  selectedLatLng,
-                  16,
-                ),
-              );
+              Future.delayed(const Duration(milliseconds: 300), () {
+                mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(
+                    selectedLatLng,
+                    16,
+                  ),
+                );
+              });
             },
             onCameraMove: (position) {
               selectedLatLng = position.target;
@@ -121,7 +132,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 child: CircleAvatar(
                   backgroundColor: Colors.white,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back),
+                    icon:  Icon(Icons.arrow_back,color: ColorResource.primary,),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -158,8 +169,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               top: false,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration:  BoxDecoration(
+                  color: ColorResource.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   boxShadow: [BoxShadow(blurRadius: 12, color: Colors.black12)],
                 ),
@@ -181,9 +192,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style:  TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
+                        color: Colors.black
                       ),
                     ),
 

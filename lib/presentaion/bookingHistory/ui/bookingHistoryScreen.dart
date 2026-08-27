@@ -15,7 +15,8 @@ import '../../../widget/custom_appBar.dart';
 
 import '../../../widget/motionToastHelper.dart';
 import '../../../widget/showLoaderFunction.dart';
-import '../../booking/ui/widget/bookingProcessingWidget.dart';
+import '../../booking/booking/ui/widget/bookingProcessingWidget.dart';
+
 import '../../bottomBar/bottomBar.dart';
 import '../../profile/viewModel/profileViewModel.dart';
 import '../helper/bookingMessageScreen.dart';

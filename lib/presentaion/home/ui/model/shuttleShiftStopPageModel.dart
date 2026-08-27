@@ -3,9 +3,14 @@ class ShuttleShiftStopPageModel {
   var totalResult;
   var message;
   List<Data>? data;
+  List<ReturnShiftsData>? returnShifts;
+  var returnShiftsCount;
+  String? travelType;
+  //ReturnShifts
 
   ShuttleShiftStopPageModel(
-      {this.status, this.totalResult, this.message, this.data});
+      {this.status, this.totalResult, this.message, this.data,this.returnShifts,
+        this.returnShiftsCount,});
 
   ShuttleShiftStopPageModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
@@ -17,6 +22,14 @@ class ShuttleShiftStopPageModel {
         data!.add(new Data.fromJson(v));
       });
     }
+    if (json['returnShifts'] != null) {
+      returnShifts = <ReturnShiftsData>[];
+      json['returnShifts'].forEach((v) {
+        returnShifts!.add(ReturnShiftsData.fromJson(v));
+      });
+    }
+
+    returnShiftsCount = json['returnShiftsCount'];
   }
 
   Map<String, dynamic> toJson() {
@@ -27,6 +40,11 @@ class ShuttleShiftStopPageModel {
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
+    if (returnShifts != null) {
+      data['returnShifts'] = returnShifts!.map((v) => v.toJson()).toList();
+    }
+
+    data['returnShiftsCount'] = returnShiftsCount;
     return data;
   }
 }
@@ -177,6 +195,167 @@ class IntermediateStops {
       {this.name, this.address, this.arrivalTime, this.departureTime});
 
   IntermediateStops.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    address = json['address'];
+    arrivalTime = json['arrivalTime'];
+    departureTime = json['departureTime'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
+    data['address'] = this.address;
+    data['arrivalTime'] = this.arrivalTime;
+    data['departureTime'] = this.departureTime;
+    return data;
+  }
+}
+class ReturnShiftsData {
+  var shiftId;
+  var date;
+  var shiftName;
+  ReturnShiftsRoute? route;
+  var gst;
+  ReturnShiftsSource? source;
+  ReturnShiftsDestination? destination;
+  List<ReturnShiftsIntermediateStops>? intermediateStops;
+  var totalPrice;
+  var priceWithGst;
+
+  ReturnShiftsData(
+      {this.shiftId,
+      this.date,
+        this.shiftName,
+        this.route,
+        this.gst,
+        this.source,
+        this.destination,
+        this.intermediateStops,
+        this.totalPrice,
+        this.priceWithGst});
+
+  ReturnShiftsData.fromJson(Map<String, dynamic> json) {
+    shiftId = json['shiftId'];
+    date = json['date'];
+    shiftName = json['shiftName'];
+    route = json['route'] != null ? new ReturnShiftsRoute.fromJson(json['route']) : null;
+    gst = json['gst'];
+    source =
+    json['source'] != null ? new ReturnShiftsSource.fromJson(json['source']) : null;
+    destination = json['destination'] != null
+        ? new ReturnShiftsDestination.fromJson(json['destination'])
+        : null;
+    if (json['intermediateStops'] != null) {
+      intermediateStops = <ReturnShiftsIntermediateStops>[];
+      json['intermediateStops'].forEach((v) {
+        intermediateStops!.add(new ReturnShiftsIntermediateStops.fromJson(v));
+      });
+    }
+    totalPrice = json['totalPrice'];
+    priceWithGst = json['priceWithGst'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['shiftId'] = this.shiftId;
+    data['date'] = this.date;
+    data['shiftName'] = this.shiftName;
+    if (this.route != null) {
+      data['route'] = this.route!.toJson();
+    }
+    data['gst'] = this.gst;
+    if (this.source != null) {
+      data['source'] = this.source!.toJson();
+    }
+    if (this.destination != null) {
+      data['destination'] = this.destination!.toJson();
+    }
+    if (this.intermediateStops != null) {
+      data['intermediateStops'] =
+          this.intermediateStops!.map((v) => v.toJson()).toList();
+    }
+    data['totalPrice'] = this.totalPrice;
+    data['priceWithGst'] = this.priceWithGst;
+    return data;
+  }
+}
+
+class ReturnShiftsRoute {
+  var sId;
+  var name;
+
+  ReturnShiftsRoute({this.sId, this.name});
+
+  ReturnShiftsRoute.fromJson(Map<String, dynamic> json) {
+    sId = json['_id'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.sId;
+    data['name'] = this.name;
+    return data;
+  }
+}
+
+class ReturnShiftsSource {
+  var name;
+  var address;
+  var departureTime;
+  var price;
+
+  ReturnShiftsSource({this.name, this.address, this.departureTime, this.price});
+
+  ReturnShiftsSource.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    address = json['address'];
+    departureTime = json['departureTime'];
+    price = json['price'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
+    data['address'] = this.address;
+    data['departureTime'] = this.departureTime;
+    data['price'] = this.price;
+    return data;
+  }
+}
+
+class ReturnShiftsDestination {
+  var name;
+  var address;
+  var arrivalTime;
+
+  ReturnShiftsDestination({this.name, this.address, this.arrivalTime});
+
+  ReturnShiftsDestination.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    address = json['address'];
+    arrivalTime = json['arrivalTime'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
+    data['address'] = this.address;
+    data['arrivalTime'] = this.arrivalTime;
+    return data;
+  }
+}
+
+class ReturnShiftsIntermediateStops {
+  var name;
+  var address;
+  var arrivalTime;
+  var departureTime;
+
+  ReturnShiftsIntermediateStops(
+      {this.name, this.address, this.arrivalTime, this.departureTime});
+
+  ReturnShiftsIntermediateStops.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     address = json['address'];
     arrivalTime = json['arrivalTime'];

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mannfleet/presentaion/auth/login/provider/loginProvider.dart';
 import 'package:mannfleet/presentaion/auth/otp/otpProvider/otpProvider.dart';
-import 'package:mannfleet/presentaion/booking/provider/bookingSummaryProvider.dart';
+import 'package:mannfleet/presentaion/booking/booking/provider/bookingSummaryProvider.dart';
+
 import 'package:mannfleet/presentaion/bookingHistory/provider/bookingHistoryProvider.dart';
 import 'package:mannfleet/presentaion/cms/viewModel/cmsPro.dart';
 import 'package:mannfleet/presentaion/home/provider/homeProvider.dart';
@@ -11,12 +12,14 @@ import 'package:mannfleet/presentaion/newComplaints/viewModel/complaintsPro.dart
 import 'package:mannfleet/presentaion/notification/viewModel/NotificationPro.dart';
 import 'package:mannfleet/presentaion/onBording/provider/onBordingProvider.dart';
 import 'package:mannfleet/presentaion/profile/viewModel/profileViewModel.dart';
-import 'package:mannfleet/presentaion/shuttleModule/myShuttle/viewModel/myShuttleViewModel.dart';
-import 'package:mannfleet/presentaion/shuttleModule/shuttleHistory/viewModel/shuttleHistoryViewModel.dart';
-import 'package:mannfleet/presentaion/shuttleModule/shuttleList/provider/shuttleProvider.dart';
+
+
 import 'package:mannfleet/presentaion/splash/provider/provider.dart';
 import 'package:mannfleet/presentaion/splash/ui/splashScreen.dart';
 import 'package:mannfleet/presentaion/wallet/viewModel/walletViewModel.dart';
+import 'package:mannfleet/shuttleModule/myShuttle/viewModel/myShuttleViewModel.dart';
+import 'package:mannfleet/shuttleModule/shuttleHistory/viewModel/shuttleHistoryViewModel.dart';
+import 'package:mannfleet/shuttleModule/shuttleList/provider/shuttleProvider.dart';
 import 'package:mannfleet/util/theame/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'apiservice/services/firebaseService.dart';

@@ -107,6 +107,8 @@ class RecentLocationData {
   String? lastUsedAt;
   String? bookingNumber;
   String? source;
+  String? model;
+  String? id;
 
   RecentLocationData(
       {this.type,
@@ -115,6 +117,8 @@ class RecentLocationData {
         this.address,
         this.lastUsedAt,
         this.source,
+        this.model,
+        this.id,
         this.bookingNumber});
 
   RecentLocationData.fromJson(Map<String, dynamic> json) {
@@ -125,6 +129,8 @@ class RecentLocationData {
     lastUsedAt = json['lastUsedAt'];
     bookingNumber = json['bookingNumber'];
     source = json['source'];
+    model = json['model'];
+    id = json['id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -136,6 +142,8 @@ class RecentLocationData {
     data['lastUsedAt'] = this.lastUsedAt;
     data['bookingNumber'] = this.bookingNumber;
     data['source'] = this.source;
+    data['model'] = this.model;
+    data['id'] = this.id;
     return data;
   }
 }

@@ -8,10 +8,9 @@ import '../../../../widget/customShimmer.dart';
 import '../../../../widget/custom_text.dart';
 
 class HeaderDetailScreen extends StatefulWidget {
-  final String image;
+
   final HomeProvider provider;
-  final String title;
-  final String subTitle;
+
   final double screenHeight;
   final double screenWidth;
 
@@ -19,9 +18,8 @@ class HeaderDetailScreen extends StatefulWidget {
     super.key,
     required this.screenWidth,
     required this.screenHeight,
-    required this.image,
-    required this.title,
-    required this.subTitle,
+
+
     required this.provider,
   });
 
@@ -57,15 +55,18 @@ class _HeaderDetailScreenState extends State<HeaderDetailScreen> {
         autoPlay: true,
       ),
       items: widget.provider.bannerModel!.data!.map((banner) {
-        return Image.network(
-      banner.image.toString(),
-          height: widget.screenHeight * 0.18875,
-          width: widget.screenWidth,
-          fit: BoxFit.fill,
-errorBuilder: (context, error, stackTrace) {
-  return Image.asset("assets/images/bannerError.jpg" ,    height: widget.screenHeight * 0.18875,
-    width: widget.screenWidth,);
-},
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+                banner.image.toString(),
+            height: widget.screenHeight * 0.18875,
+            width: widget.screenWidth,
+            fit: BoxFit.fill,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset("assets/images/bannerError.jpg" ,    height: widget.screenHeight * 0.18875,
+              width: widget.screenWidth,);
+          },
+          ),
         );
       }).toList(),
     );
@@ -106,7 +107,7 @@ errorBuilder: (context, error, stackTrace) {
       // ),
       child: Column(
         children: [
-          SizedBox(height: 10,),
+          // SizedBox(height: 10,),
           /// Banner
           // bannerSection(),
 

@@ -28,9 +28,8 @@ class MannTajExpressView extends StatelessWidget {
           screenHeight: screenHeight,
           provider: provider,
           screenWidth: screenWidth,
-          image: AppImages.carImage, // ← replace with taj express / luxury car image if available
-          title: 'Premium Taj Express',
-          subTitle: 'Luxury intercity rides to Agra & more',
+          // image: AppImages.carImage, // ← replace with taj express / luxury car image if available
+
         ),
         SizedBox(height: screenHeight * 0.02),
 

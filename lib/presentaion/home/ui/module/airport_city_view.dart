@@ -7,8 +7,10 @@ import 'package:mannfleet/widget/custom_text.dart';
 import '../../../../widget/motionToastHelper.dart';
 import '../../../../widget/navigator_method.dart';
 import '../../../../widget/showLoaderFunction.dart';
-import '../../../booking/ui/vehicleSelectionScreen.dart';
+import '../../../booking/booking/ui/vehicleSelectionScreen.dart';
+
 import '../../provider/homeProvider.dart';
+import '../../widgets/customMessageDialog.dart';
 import '../widget/buildDateTimeRow.dart';
 import '../widget/buildDateTimeRowCompact.dart';
 import '../widget/headerDetails.dart';
@@ -20,6 +22,7 @@ class AirportCityView extends StatefulWidget {
   final double screenHeight;
   final double screenWidth;
   final VoidCallback? onLocationFocus;
+  final ScrollController? scrollController;
 
   const AirportCityView({
     super.key,
@@ -28,6 +31,7 @@ class AirportCityView extends StatefulWidget {
     required this.screenWidth,
     required this.globalKey,
     this.onLocationFocus, // 👈 ADD
+    this.scrollController,
   });
 
   @override
@@ -35,6 +39,13 @@ class AirportCityView extends StatefulWidget {
 }
 
 class _AirportCityViewState extends State<AirportCityView> {
+  void _scrollToTop() {
+    widget.scrollController?.animateTo(
+      0.0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -51,9 +62,13 @@ class _AirportCityViewState extends State<AirportCityView> {
   Widget build(BuildContext context) {
     final int wayIndex = widget.provider.selectedWayIndex;
     final isOneWay = wayIndex == 0;
-    final isRoundTrip = wayIndex == 1;
-    final isHourly = wayIndex == 2;
-    final isIntercity = wayIndex == 3;
+    final isIntercity = wayIndex == 1;
+    final isRoundTrip = wayIndex == 2;
+    final isHourly = wayIndex == 3;
+    // final isOneWay = wayIndex == 0;
+    // final isRoundTrip = wayIndex == 1;
+    // final isHourly = wayIndex == 2;
+    // final isIntercity = wayIndex == 3;
     return Column(
       children: [
         _buildHeader(provider: widget.provider),
@@ -62,7 +77,8 @@ class _AirportCityViewState extends State<AirportCityView> {
           padding: const EdgeInsets.all(15),
           margin: const EdgeInsets.symmetric(horizontal: 10),
           decoration: ShapeDecoration(
-            color: ColorResource.white,
+            color:ColorResource.white,
+            // color: ColorResource.white,
             shape: RoundedRectangleBorder(
               side: BorderSide(width: 1, color: ColorResource.homeOption),
               borderRadius: BorderRadius.circular(16),
@@ -74,28 +90,29 @@ class _AirportCityViewState extends State<AirportCityView> {
               _buildSubTabs(context: context, key: widget.globalKey),
               SizedBox(height: widget.screenHeight * 0.018),
               _buildLocationFields(isHourly, isIntercity),
-              const Divider(
-                height: 24,
-                color: Color(0xff94A3B8),
-                thickness: 0.6,
-              ),
+              // const Divider(
+              //   height: 24,
+              //   color: Color(0xff94A3B8),
+              //   thickness: 0.6,
+              // ),
               // Divider(height: 1, color:  Color(0xff94A3B8)),
               _buildDateTimeSection(context, isHourly, isRoundTrip),
-              const Divider(
-                height: 24,
-                color: Color(0xff94A3B8),
-                thickness: 0.6,
-              ),
 
-              // const SizedBox(height: 10),
+              // const Divider(
+              //   height: 24,
+              //   color: Color(0xff94A3B8),
+              //   thickness: 0.6,
+              // ),
+              const SizedBox(height: 24),
               CustomButton(
-                title: isHourly
-                    ? "Find Hourly Packages"
-                    : isRoundTrip
-                    ? "Find Round Trip Rides"
-                    : isIntercity
-                    ? "Search Intercity Rides"
-                    : "Find Rides",
+                title:
+                    isHourly
+                        ? "Find Hourly Packages"
+                        : isRoundTrip
+                        ? "Find Round Trip Rides"
+                        : isIntercity
+                        ? "Search Intercity Rides"
+                        : "Find Rides",
                 onTap: () async {
                   /// ✅ Date Validation
                   if (widget.provider.selectedApiDate.isEmpty) {
@@ -148,6 +165,7 @@ class _AirportCityViewState extends State<AirportCityView> {
                     );
                     return;
                   }
+                  print("Brijesh print dropLat ${widget.provider.dropLat},dropLat ${widget.provider.dropLat} ,address ${widget.provider.dropController}");
 
                   /// ✅ Drop Validation (skip for hourly)
                   if (!isHourly &&
@@ -166,13 +184,14 @@ class _AirportCityViewState extends State<AirportCityView> {
 
                   try {
                     /// ✅ Booking Type
-                    final bookingType = isRoundTrip
-                        ? "round_trip"
-                        : isIntercity
-                        ? "intercity"
-                        : isHourly
-                        ? "hourly"
-                        : "one_way";
+                    final bookingType =
+                        isRoundTrip
+                            ? "round_trip"
+                            : isIntercity
+                            ? "intercity"
+                            : isHourly
+                            ? "hourly"
+                            : "one_way";
 
                     /// ✅ API Call
                     await widget.provider.createBooking(
@@ -185,14 +204,22 @@ class _AirportCityViewState extends State<AirportCityView> {
                       Navigator.pop(context);
                     }
 
-                    /// ✅ Success Toast
-                    ToastHelper.show(
-                      context,
-                      message:widget.provider.oneWayBookingModel?.message,
-                      // message: "Fare estimates fetched successfully",
-                      type: ToastType.success,
+            CustomMessageDialog.show(
+                      context: context,
+                      title: "Warning",
+                      message: widget.provider.oneWayBookingModel?.message,
+                      type: MessageType.warning,
                     );
-                    if(widget.provider.oneWayBookingModel!.status==true){
+
+                    /// ✅ Success Toast
+                    // ToastHelper.show(
+                    //   context,
+                    //   message: widget.provider.oneWayBookingModel?.message,
+                    //   // message: "Fare estimates fetched successfully",
+                    //   type: ToastType.success,
+                    // );
+                    if (widget.provider.oneWayBookingModel!.status == true) {
+                      Navigator.pop(context);
                       navPush(
                         context: context,
                         action: VehicleSelectionScreen(
@@ -202,12 +229,14 @@ class _AirportCityViewState extends State<AirportCityView> {
                           dropLng: widget.provider.dropLng?.toString() ?? "",
                           scheduledDate: widget.provider.selectedApiDate,
                           scheduledTime: widget.provider.selectedApiTime,
-                          toCity: widget.provider.isSwapped
-                              ? widget.provider.dropController.text
-                              : widget.provider.pickupController.text,
+                          toCity:
+                              widget.provider.isSwapped
+                                  ? widget.provider.dropController.text
+                                  : widget.provider.pickupController.text,
                           returnDate: widget.provider.selectedReturnApiDate,
                           returnTime: widget.provider.selectedReturnApiTime,
-                          selectedHours: widget.provider.selectedHours.toString(),
+                          selectedHours:
+                              widget.provider.selectedHours.toString(),
                           tripDays: widget.provider.tripDays.toString(),
                         ),
                       );
@@ -259,19 +288,7 @@ class _AirportCityViewState extends State<AirportCityView> {
       screenHeight: widget.screenHeight,
       provider: provider,
       screenWidth: widget.screenWidth,
-      image: AppImages.carImage,
-      title: "Intercity Rides",
-      subTitle: "Outstation travel at fixed prices",
-      // title: isHourly
-      //     ? 'Hourly Packages'
-      //     : isIntercity
-      //     ? 'Intercity Rides'
-      //     : 'Reliable City Commute',
-      // subTitle: isHourly
-      //     ? 'Book by the hour • Free waiting time'
-      //     : isIntercity
-      //     ? 'Outstation travel at fixed prices'
-      //     : 'Save 20% on your first airport trip this week.',
+
     );
   }
 
@@ -283,9 +300,18 @@ class _AirportCityViewState extends State<AirportCityView> {
       builder: (context) {
         return Container(
           key: key,
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: ColorResource.homeOption,
+            gradient:  LinearGradient(
+              colors: [
+                ColorResource.primary,
+                ColorResource.primarySec,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            // color: Color(0xfff2dfe0),
+            // color: ColorResource.homeOption,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -296,7 +322,7 @@ class _AirportCityViewState extends State<AirportCityView> {
                   onTap: () => widget.provider.changeWayTab(index),
                   child: Container(
                     // duration: const Duration(milliseconds: 250),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 5),
                     decoration: BoxDecoration(
                       color: isSelected ? Colors.white : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
@@ -305,12 +331,20 @@ class _AirportCityViewState extends State<AirportCityView> {
                       child: Text(
                         widget.provider.tabsWay[index],
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           // fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? ColorResource.textBlue
-                              : ColorResource.textBlack,
+                          color:        isSelected
+                              ? ColorResource.primary
+                              : Colors.white,
+                          // color:
+                          // isSelected
+                          //     ? ColorResource.primary
+                          //     : Colors.black.withOpacity(0.8),
+                          // color:
+                          //     isSelected
+                          //         ? ColorResource.textBlue
+                          //         : ColorResource.textBlack,
                         ),
                       ),
                     ),
@@ -330,9 +364,10 @@ class _AirportCityViewState extends State<AirportCityView> {
         LocationField(
           label: isHourly ? "PICKUP LOCATION" : "FROM",
           iconPath: AppImages.pickupImage,
-          controller: widget.provider.isSwapped
-              ? widget.provider.dropController
-              : widget.provider.pickupController,
+          controller:
+              widget.provider.isSwapped
+                  ? widget.provider.dropController
+                  : widget.provider.pickupController,
           isPickup: !widget.provider.isSwapped,
           height: 18,
 
@@ -343,31 +378,18 @@ class _AirportCityViewState extends State<AirportCityView> {
         if (!isHourly) ...[
           Row(
             children: [
-              const Expanded(
-                child: Divider(
-                  height: 1,
-                  color: Color(0xff94A3B8),
-                  thickness: 0.6,
-                ),
-              ),
+
               SizedBox(height: 10, width: 1),
-              // SizedBox(height: 10, width: 35),
-              // GestureDetector(
-              //   onTap: widget.provider.swapLocation,
-              //   child: CustomImageView(
-              //     imagePath: AppImages.locationCross,
-              //     height: 35,
-              //     width: 35,
-              //   ),
-              // ),
+
             ],
           ),
           LocationField(
             label: isIntercity ? "TO" : "DROP-OFF DESTINATION",
             iconPath: AppImages.locationImage,
-            controller: widget.provider.isSwapped
-                ? widget.provider.pickupController
-                : widget.provider.dropController,
+            controller:
+                widget.provider.isSwapped
+                    ? widget.provider.pickupController
+                    : widget.provider.dropController,
             isPickup: widget.provider.isSwapped,
             height: 15,
             width: 15,
@@ -392,7 +414,11 @@ class _AirportCityViewState extends State<AirportCityView> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () => widget.provider.pickDate(context),
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    widget.provider.pickDate(context);
+                  },
+                  // onTap: () => widget.provider.pickDate(context),
                   child: BuildDateTimeRow(
                     icon: AppImages.calender,
                     label: "Pickup Date",
@@ -403,7 +429,11 @@ class _AirportCityViewState extends State<AirportCityView> {
               const SizedBox(width: 16),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => widget.provider.pickTime(context),
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    widget.provider.pickTime(context);
+                  },
+                  // onTap: () => widget.provider.pickTime(context),
                   child: BuildDateTimeRow(
                     icon: AppImages.timeImage,
                     label: "Pickup Time",
@@ -413,8 +443,8 @@ class _AirportCityViewState extends State<AirportCityView> {
               ),
             ],
           ),
-          const Divider(height: 24, color: Color(0xff94A3B8), thickness: 0.6),
 
+          // const Divider(height: 24, color: Color(0xff94A3B8), thickness: 0.6),
           const SizedBox(height: 8),
           _buildHourlyPackageSelector(widget.provider),
         ],
@@ -427,7 +457,11 @@ class _AirportCityViewState extends State<AirportCityView> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => widget.provider.pickDate(context),
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+                widget.provider.pickDate(context);
+              },
+              // onTap: () => widget.provider.pickDate(context),
               child: BuildDateTimeRowCompact(
                 title: "Pickup Date",
                 icon: AppImages.calender,
@@ -438,7 +472,11 @@ class _AirportCityViewState extends State<AirportCityView> {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () => widget.provider.pickTime(context),
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+                widget.provider.pickTime(context);
+              },
+              // onTap: () => widget.provider.pickTime(context),
               child: BuildDateTimeRowCompact(
                 title: "Pickup Time",
                 icon: AppImages.timeImage,
@@ -457,7 +495,11 @@ class _AirportCityViewState extends State<AirportCityView> {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => widget.provider.pickDate(context),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  widget.provider.pickDate(context);
+                },
+                // onTap: () => widget.provider.pickDate(context),
                 child: BuildDateTimeRowCompact(
                   title: "Pickup Date",
                   icon: AppImages.calender,
@@ -468,7 +510,11 @@ class _AirportCityViewState extends State<AirportCityView> {
             const SizedBox(width: 12),
             Expanded(
               child: GestureDetector(
-                onTap: () => widget.provider.pickTime(context),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  widget.provider.pickTime(context);
+                },
+                // onTap: () => widget.provider.pickTime(context),
                 child: BuildDateTimeRowCompact(
                   title: "Pickup Time",
                   icon: AppImages.timeImage,
@@ -480,7 +526,7 @@ class _AirportCityViewState extends State<AirportCityView> {
         ),
 
         // const SizedBox(height: 8),
-        const Divider(height: 24, color: Color(0xff94A3B8), thickness: 0.6),
+        // const Divider(height: 24, color: Color(0xff94A3B8), thickness: 0.6),
         // const SizedBox(height: 8),
 
         /// 🔥 Return Section
@@ -488,7 +534,11 @@ class _AirportCityViewState extends State<AirportCityView> {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => widget.provider.pickReturnDate(context),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  widget.provider.pickReturnDate(context);
+                },
+                // onTap: () => widget.provider.pickReturnDate(context),
                 child: BuildDateTimeRowCompact(
                   title: "Return Date",
                   icon: AppImages.calender,
@@ -499,7 +549,11 @@ class _AirportCityViewState extends State<AirportCityView> {
             const SizedBox(width: 12),
             Expanded(
               child: GestureDetector(
-                onTap: () => widget.provider.pickReturnTime(context),
+                onTap: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  widget.provider.pickReturnTime(context);
+                },
+                // onTap: () => widget.provider.pickReturnTime(context),
                 child: BuildDateTimeRowCompact(
                   title: "Return Time",
                   icon: AppImages.timeImage,
@@ -526,12 +580,16 @@ class _AirportCityViewState extends State<AirportCityView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+         Text(
           "Choose Package",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: ColorResource.black,
+            color: Colors.black
+
+
+
+            // color: ColorResource.black,
           ),
         ),
         const SizedBox(height: 12),
@@ -539,47 +597,54 @@ class _AirportCityViewState extends State<AirportCityView> {
         Wrap(
           spacing: 10,
           runSpacing: 12,
-          children: packages.map((pkg) {
-            bool isSelected = provider.selectedHours == pkg.hours;
+          children:
+              packages.map((pkg) {
+                bool isSelected = provider.selectedHours == pkg.hours;
 
-            return GestureDetector(
-              onTap: () {
-                if (pkg.hours != null) {
-                  provider.setHours(
-                    pkg.hours!,
-                  ); // ← Model se hours set kar rahe hain
-                  // Agar package ID bhi save karna hai toh yahan add kar sakte ho
-                  // provider.setSelectedPackageId(pkg.sId);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? ColorResource.blueText.withOpacity(0.1)
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: isSelected
-                        ? ColorResource.blueText
-                        : Colors.grey.shade300,
-                    width: isSelected ? 1.5 : 1,
+                return GestureDetector(
+                  onTap: () {
+                    if (pkg.hours != null) {
+                      provider.setHours(
+                        pkg.hours!,
+                      ); // ← Model se hours set kar rahe hain
+                      // Agar package ID bhi save karna hai toh yahan add kar sakte ho
+                      // provider.setSelectedPackageId(pkg.sId);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? ColorResource.primarySec
+                              : ColorResource.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? ColorResource.primarySec
+                                : Colors.black,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Text(
+                      pkg.name ?? "${pkg.hours} hrs • ${pkg.includedKms} km",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color:
+                            isSelected
+                                ? ColorResource.white
+                                : Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  pkg.name ?? "${pkg.hours} hrs • ${pkg.includedKms} km",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isSelected ? ColorResource.blueText : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
